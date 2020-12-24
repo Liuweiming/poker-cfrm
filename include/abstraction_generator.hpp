@@ -257,6 +257,11 @@ public:
                   sdeck[c2] = 0;
                   sboard.push_back(c2 + 1);
                   uint8_t newcards[7];
+                  // std::cout << missing_c << " " << sboard.size() << std::endl;
+                  // for (auto &sb: sboard){
+                  //   std::cout << sb << " ";
+                  // }
+                  // std::cout << std::endl;
                   assert(sboard.size() == 5);
                   newcards[0] = cards[0];
                   newcards[1] = cards[1];
@@ -280,6 +285,9 @@ public:
                   //.pwin_tie();
                   ++features[i].histogram[prob_to_bucket(equity, round)];
                   ++nb_hist_samples;
+                  
+                  sdeck[c2] = 1;
+                  sboard.pop_back();
                 }
               }
 
@@ -377,7 +385,7 @@ public:
 
 
         hand_index_t index = hand_index_last(&indexer[round], newcards);
-        
+
         double equity = ehslp->raw(round,index);
         //calc[thread]
         //->evaluate_vs_random(&handlist, 1, sboard, {}, nb_samples)[0]
