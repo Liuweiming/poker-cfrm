@@ -16,5 +16,8 @@ cfrm
 cluster-abs
 potential-abs
 player
+gen_eval_table
 lib/libpoker/lib/*
 lib/libpoker/obj/*
+lib/libecalc/lib/*
+lib/libecalc/obj/*

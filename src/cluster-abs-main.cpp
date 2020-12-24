@@ -38,8 +38,8 @@ const char *metric_str[] = {
     "SUIT-ISOMORPH EHS EHS EHS",  "SUIT-ISOMORPH OCHS OCHS OCHS"};
 
 struct {
-  string handranks_path = "/usr/local/freedom/data/handranks.dat";
-  string ehs_path = "../../EHS.dat";
+  string handranks_path = "./handranks.dat";
+  string ehs_path = "./ehs.dat";
   int nb_threads = 1;
   size_t seed = time(NULL);
   string save_to = "";

@@ -37,7 +37,7 @@ DEP_FILES = $(CPP_OBJ_FILES:.o=.d)
 all: prepare $(C_OBJ_FILES) $(CPP_OBJ_FILES) gen_eval_table 
 
 prepare:
-	mkdir -p obj/{release,debug}
+	mkdir -p obj/$(target)
 
 obj/$(target)/%.o: src/%.c
 	$(CC) $(INCLUDES) $(LDFLAGS) $(LOADLIBES) $(LDLIBS) $< -o $@
