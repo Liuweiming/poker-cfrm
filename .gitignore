@@ -11,6 +11,7 @@
 test.abs
 strategies/*
 abstractions/*
+.vscode
 
 cfrm
 cluster-abs

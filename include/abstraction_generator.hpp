@@ -228,7 +228,7 @@ public:
               handlist.set_hand(poker::Hand(cards[0] + 1, cards[1] + 1));
               deck[cards[0]] = 0;
               deck[cards[1]] = 0;
-            int missing_c = 5;
+              int missing_c = 5;
               for (int j = 2; j < board_card_sum[round] + 2; ++j) {
                 deck[cards[j]] = 0;
                 board[j - 2] = cards[j] + 1;
@@ -236,47 +236,51 @@ public:
               }
 
               // build histogramm
-              for (unsigned s = 0; s < nb_hist_samples; ++s) {
-                // give out rest of boardcards
+              unsigned turn_num = missing_c == 2 ? 52 : 1;
+              unsigned river_num = 52;
+              nb_hist_samples = 0;
+              // give out rest of boardcards
+              for (unsigned c1 = 0; c1 < turn_num; ++c1) {
                 std::bitset<52> sdeck = deck;
                 std::vector<ecalc::card> sboard(board);
-
-                for (unsigned b = 0; b < missing_c;
-                     ++b) {
-                  ecalc::card rand;
-                  while (true) {
-                    rand = rng(52);
-                    if (sdeck[rand]) {
-                      sdeck[rand] = 0;
-                      sboard.push_back(rand + 1);
-                      break;
-                    }
+                if (missing_c > 1){
+                  if (!sdeck[c1]){
+                    continue;
                   }
+                  sdeck[c1] = 0;
+                  sboard.push_back(c1 + 1);
                 }
+                for (unsigned c2 = 0; c2 < river_num; ++c2){
+                  if (!sdeck[c2]){
+                    continue;
+                  }
+                  sdeck[c2] = 0;
+                  sboard.push_back(c2 + 1);
+                  uint8_t newcards[7];
+                  assert(sboard.size() == 5);
+                  newcards[0] = cards[0];
+                  newcards[1] = cards[1];
+                  newcards[2] = sboard[0]-1;
+                  newcards[3] = sboard[1]-1;
+                  newcards[4] = sboard[2]-1;
+                  newcards[5] = sboard[3]-1;
+                  newcards[6] = sboard[4]-1;
 
-                uint8_t newcards[7];
-                assert(sboard.size() == 5);
-                newcards[0] = cards[0];
-                newcards[1] = cards[1];
-                newcards[2] = sboard[0]-1;
-                newcards[3] = sboard[1]-1;
-                newcards[4] = sboard[2]-1;
-                newcards[5] = sboard[3]-1;
-                newcards[6] = sboard[4]-1;
 
+                  //for(unsigned d = 0; d < 7; ++d)
+                      //std::cout << ((int)newcards[d]) << " ";
+                  //std::cout << "\n";
 
-                //for(unsigned d = 0; d < 7; ++d)
-                    //std::cout << ((int)newcards[d]) << " ";
-                //std::cout << "\n";
+                  hand_index_t index = hand_index_last(&indexer[3], newcards);
 
-                hand_index_t index = hand_index_last(&indexer[3], newcards);
-
-                double equity = ehslp->raw(3, index);
-                // calc[t]
-                //->evaluate_vs_random(&handlist, 1, sboard, {},
-                // nb_samples[round])[0]
-                //.pwin_tie();
-                ++features[i].histogram[prob_to_bucket(equity, round)];
+                  double equity = ehslp->raw(3, index);
+                  // calc[t]
+                  //->evaluate_vs_random(&handlist, 1, sboard, {},
+                  // nb_samples[round])[0]
+                  //.pwin_tie();
+                  ++features[i].histogram[prob_to_bucket(equity, round)];
+                  ++nb_hist_samples;
+                }
               }
 
               for (unsigned j = 0; j < features[i].histogram.size(); ++j) {
@@ -341,38 +345,46 @@ public:
     }
 
     // build histogramm
-    for (unsigned s = 0; s < nb_hist_samples; ++s) {
-      // give out rest of boardcards
+    unsigned turn_num = missing_c == 2 ? 52 : 1;
+    unsigned river_num = 52;
+    nb_hist_samples = 0;
+    // give out rest of boardcards
+    for (unsigned c1 = 0; c1 < turn_num; ++c1) {
       std::bitset<52> sdeck = deck;
       std::vector<ecalc::card> sboard(board);
-
-      for (unsigned b = 0; b < missing_c; ++b) {
-        ecalc::card rand;
-        while (true) {
-          rand = rng(52);
-          if (sdeck[rand]) {
-            sdeck[rand] = 0;
-            sboard.push_back(rand + 1);
-            break;
-          }
+      if (missing_c > 1) {
+        if (!sdeck[c1]) {
+          continue;
         }
+        sdeck[c1] = 0;
+        sboard.push_back(c1 + 1);
       }
+      for (unsigned c2 = 0; c2 < river_num; ++c2) {
+        if (!sdeck[c2]) {
+          continue;
+        }
+        sdeck[c2] = 0;
+        sboard.push_back(c2 + 1);
+        uint8_t newcards[7];
+        assert(sboard.size() == 5);
+        newcards[0] = cards[0];
+        newcards[1] = cards[1];
+        newcards[2] = sboard[0] - 1;
+        newcards[3] = sboard[1] - 1;
+        newcards[4] = sboard[2] - 1;
+        newcards[5] = sboard[3] - 1;
+        newcards[6] = sboard[4] - 1;
 
-      uint8_t newcards[7];
-      newcards[0] = cards[0];
-      newcards[1] = cards[1];
-      newcards[2] = sboard[0];
-      newcards[3] = sboard[1];
-      newcards[4] = sboard[2];
-      newcards[5] = sboard[3];
-      newcards[6] = sboard[4];
-      hand_index_t index = hand_index_last(&indexer[round], newcards);
 
-      double equity = ehslp->raw(round,index);
-          //calc[thread]
-              //->evaluate_vs_random(&handlist, 1, sboard, {}, nb_samples)[0]
-              //.pwin_tie();
-      ++feature.histogram[prob_to_bucket(equity, round)];
+        hand_index_t index = hand_index_last(&indexer[round], newcards);
+        
+        double equity = ehslp->raw(round,index);
+        //calc[thread]
+        //->evaluate_vs_random(&handlist, 1, sboard, {}, nb_samples)[0]
+        //.pwin_tie();
+        ++feature.histogram[prob_to_bucket(equity, round)];
+        ++nb_hist_samples;
+      }
     }
 
     for (unsigned j = 0; j < feature.histogram.size(); ++j) {

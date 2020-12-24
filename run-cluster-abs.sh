@@ -1,0 +1,1 @@
+./cluster-abs  --save-to ./neeo_cluster.card_abs --threads 80 --dump-centers true --metric mixed_neeo --buckets 169,5000,5000,5000 --history-points 50,50,50,8 --nb-hist-samples-per-round 100,2652,52,2652
