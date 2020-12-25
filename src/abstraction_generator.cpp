@@ -49,7 +49,7 @@ void MixedAbstractionGenerator::generate(nbgen &rng, std::vector<histogram_c> &r
     generators[i]->generate_round(i, rng,round_centers[i]);
     std::cout << "round " << i << " eval and clustering took: "
               << ch::duration_cast<ch::seconds>(ch::steady_clock::now() - start)
-                     .count() << " sec.\n";
+                     .count() << " sec." << std::endl;;
   }
 }
 
@@ -88,7 +88,7 @@ void PotentialAwareAbstractionGenerator::generate(nbgen &rng, std::vector<histog
     }
     std::cout << "round " << i << " eval and clustering took: "
               << ch::duration_cast<ch::seconds>(ch::steady_clock::now() - start)
-                     .count() << " sec.\n";
+                     .count() << " sec." << std::endl;;
   }
 }
 

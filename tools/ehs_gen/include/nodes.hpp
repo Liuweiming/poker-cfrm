@@ -116,19 +116,19 @@ public:
     std::vector<ecalc::card> board(sumBoardCards(this->gamedef,round));
     std::vector<ecalc::card> dead;
 
-    //std::cout << "money: " << money << "\n";
-    //std::cout << "opp: " << opp << "\n";
-    //std::cout << "round of root state: " << round << "\n";
+    //std::cout <<  "money: " << money << "" << std::endl;
+    //std::cout <<  "opp: " << opp << "" << std::endl;
+    //std::cout <<  "round of root state: " << round << "" << std::endl;
 
     //std::cout << "board: ";
     for (unsigned i = 0; i < board.size(); ++i) {
       board[i] = state_.boardCards[i]+1;
       //std::cout << poker::Card(board[i]).str() << " ";
     }
-    //std::cout << "\n";
+    //std::cout <<  "" << std::endl;
 
     poker::Hand phand(state_.holeCards[player][0]+1,state_.holeCards[player][1]+1);
-    //std::cout << "player hand: " << phand.str() << "\n";
+    //std::cout <<  "player hand: " << phand.str() << "" << std::endl;
     std::vector<ecalc::Handlist *> lists{new ecalc::SingleHandlist(phand),
                                          new ecalc::RandomHandlist()};
 
@@ -138,8 +138,8 @@ public:
     res = calc->evaluate(lists,board,dead,samples);
     double equity= res[0].pwin_tie();
 
-    //std::cout << "equity: " << equity << "\n";
-    //std::cout << "ev: "<< equity * money << "\n";
+    //std::cout <<  "equity: " << equity << "" << std::endl;
+    //std::cout <<  "ev: "<< equity * money << "" << std::endl;
 
     for(unsigned i = 0; i < 2; ++i)
         delete lists[i];
@@ -169,7 +169,7 @@ public:
     actions = actionabs->get_actions(gamedef, state());
     delete actionabs;
     
-    //std::cout << "available actions: " << actions.size() << "\n";
+    //std::cout <<  "available actions: " << actions.size() << "" << std::endl;
 
     vector<node_t *> children(actions.size());
     for (int c = 0; c < actions.size(); ++c) {
@@ -212,10 +212,10 @@ public:
     // random
     if (nb_samples() < 1000) {
         int rand = rng()%children_.size();
-        //std::cout << "sampling random child " << rand << "\n";
+        //std::cout <<  "sampling random child " << rand << "" << std::endl;
         return children_[rand];
     }
-        //std::cout << "sampling uct " << "\n";
+        //std::cout <<  "sampling uct " << "" << std::endl;
 
     // uct if player
     double C = 2;
@@ -236,7 +236,7 @@ public:
         std::max_element(vals.begin(), vals.end()) - vals.begin();
     max_node = children_[max_index];
     if (max_node == NULL) {
-      std::cout << "selection: max node is null\n";
+      std::cout <<  "selection: max node is null" << std::endl;
     }
     return max_node;
   }

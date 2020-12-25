@@ -44,17 +44,17 @@ int main(int argc, char **argv) {
   assert(hand_indexer_init(2, (uint8_t[]) {2, 4}, &indexer[2]));
   assert(hand_indexer_init(2, (uint8_t[]) {2, 5}, &indexer[3]));
 
-  cout << "Potentialround set to " << options.potential_round << "\n";
-  cout << "initializing rng with seed: " << options.seed << "\n";
+  cout << "Potentialround set to " << options.potential_round << "" << std::endl;;
+  cout << "initializing rng with seed: " << options.seed << "" << std::endl;;
   nbgen rng(options.seed);
 
   ClusterCardAbstraction absgen;
-  cout << "loading: " << options.load_from << "\n";
+  cout << "loading: " << options.load_from << "" << std::endl;;
   absgen.init(4, options.load_from);
 
   unsigned round;
   unsigned nb_rounds = 4;
-  //cout << "loading centers from: " << options.load_from << "\n";
+  //cout << "loading centers from: " << options.load_from << "" << std::endl;;
   //std::string centerpath = options.load_from + ".center";
   //std::ifstream file(centerpath, std::ios::in | std::ios::binary);
 
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     //file.read(reinterpret_cast<char *>(&nb_features), sizeof(nb_features));
     //centers[i] = histogram_c(nb_centers);
     //std::cout << "round " << i << " centers with " << nb_centers
-              //<< " centers and " << nb_features << " features each:\n";
+              //<< " centers and " << nb_features << " features each:" << std::endl;;
     //for (unsigned j = 0; j < nb_centers; ++j) {
       //centers[i][j] = histogram_t(nb_features);
       //cout << "histogram center " << j << ": ";
@@ -75,24 +75,24 @@ int main(int argc, char **argv) {
                   //sizeof(centers[i][j][f]));
         //cout << centers[i][j][f] << " ";
       //}
-      //cout << "\n";
+      //cout << "" << std::endl;;
     //}
   //}
 
   int_c board_card_sum{0, 3, 4, 5};
   int cards_missing = board_card_sum[options.potential_round + 1] -
                       board_card_sum[options.potential_round];
-  cout << "additional number of cards to deal: " << cards_missing << "\n";
+  cout << "additional number of cards to deal: " << cards_missing << "" << std::endl;;
 
   unsigned nb_features_pr = absgen.nb_buckets[options.potential_round+1];
-  cout << "number of features per hand in potential round: " << nb_features_pr << "\n";
+  cout << "number of features per hand in potential round: " << nb_features_pr << "" << std::endl;;
 
   dataset_t dataset(indexer[options.potential_round].round_size[1]);
 
   cout << "generating round " << options.potential_round
        << " histograms for transitions to round " << options.potential_round + 1
-       << "\n";
-  cout << "nb hands to eval: " << dataset.size() << "\n";
+       << "" << std::endl;;
+  cout << "nb hands to eval: " << dataset.size() << "" << std::endl;;
 
   round = options.potential_round;
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
         for (int j = 2; j < board_card_sum[round] + 2; ++j) {
           deck[cards[j]] = 0;
         }
-        // cout << deck << "\n";
+        // cout << deck << "" << std::endl;;
         for (unsigned b = 0; b < cards_missing; ++b) {
           for (unsigned c = 0; c < 52; ++c) {
             if (deck[c]) {
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
               unsigned next_round_b = absgen.buckets[round + 1][index];
               // cout << "hand " << i << " transitions with card " << c
               //<< " to next round index " << index
-              //<< " which is in bucket " << next_round_b << "\n";
+              //<< " which is in bucket " << next_round_b << "" << std::endl;;
               ++dataset[i].histogram[next_round_b];
             }
           }
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
             dataset[i].histogram[f] /= sum;
           // cout << dataset[i].histogram[f] << " ";
         }
-        // cout << "\n";
+        // cout << "" << std::endl;;
       }
     });
   }
@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
     for (int t = 0; t < options.nb_threads; ++t)
       eval_threads[t].join();
 
-  std::cout << "clustering next round cluster histograms\n";
+  std::cout << "clustering next round cluster histograms" << std::endl;;
   histogram_c center;
   unsigned restarts = 100;
   kmeans_center_multiple_restarts(restarts, options.nb_buckets,
@@ -168,14 +168,14 @@ int main(int argc, char **argv) {
       for (unsigned f = 0; f < nb_features_pr; ++f) {
         cout << center[j][f] << " ";
       }
-      cout << "\n";
+      cout << "" << std::endl;;
     }
 
-  cout << "done.\n dumping new abstraction to " << options.save_to << "\n";
+  cout << "done.\n dumping new abstraction to " << options.save_to << "" << std::endl;;
 
   std::ofstream dump_to(options.save_to, std::ios::out | std::ios::binary);
   for (int i = 0; i < 4; ++i) {
-      cout << "dumping round " << i << "\n";
+      cout << "dumping round " << i << "" << std::endl;;
       if (i == options.potential_round) {
         dump_to.write(reinterpret_cast<const char *>(&i), sizeof(i));
       dump_to.write(reinterpret_cast<const char *>(&options.nb_buckets),
@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
   }
   dump_to.close();
 
-  cout << "finished. exiting.\n";
+  cout << "finished. exiting." << std::endl;;
 
   return 0;
 }
@@ -230,15 +230,15 @@ int parse_options(int argc, char **argv) {
     po::notify(vm);
 
     if (vm.count("help")) {
-      cout << desc << "\n";
+      cout << desc << "" << std::endl;;
       return 1;
     }
   }
   catch (exception &e) {
-    std::cout << e.what() << "\n";
+    std::cout << e.what() << "" << std::endl;;
   }
   catch (...) {
-    std::cout << "unknown error while parsing options.\n";
+    std::cout << "unknown error while parsing options." << std::endl;;
   }
   return 0;
 }

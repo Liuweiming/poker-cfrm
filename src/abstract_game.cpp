@@ -248,7 +248,7 @@ INode *AbstractGame::public_tree_root() {
     initState(game, 0, &initial_state);
     public_tree = init_public_tree({a_invalid, 0}, initial_state, idi, {}, deck,
                                    game, idi, true);
-    std::cout << idi << "\n";
+    std::cout << idi << "" << std::endl;;
   }
   return public_tree;
 }

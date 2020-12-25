@@ -46,7 +46,7 @@ public:
     // get action at state
     if (curr_node->is_terminal()) {
       // we could have been pushed off tree.
-      //std::cout << "keine actions mehr in terminal state " << path << "\n";
+      //std::cout << "keine actions mehr in terminal state " << path << "" << std::endl;;
       return NULL;
     }
     InformationSetNode *node = (InformationSetNode *)curr_node;
@@ -58,7 +58,7 @@ public:
     int max_actions = state->numActions[round];
     if (curr_action >= max_actions) {
       assert(round == state->round);
-         //std::cout << "returning found path: " << path << "\n";
+         //std::cout << "returning found path: " << path << "" << std::endl;;
       return curr_node;
     }
 
@@ -98,7 +98,7 @@ public:
       if (res == NULL && bound_res == 0 ) {
         std::cout << "originally choosen raise idx: " << abstract_size
                   << " leads to a nonexisting node. trying other bound idx: "
-                  << unused_bound << "\n";
+                  << unused_bound << "" << std::endl;;
         child = node->get_children()[first_raise_idx + unused_bound];
         return lookup_state(state, player, child, round, curr_action + 1,
                             path + ActionsStr[action.type] +

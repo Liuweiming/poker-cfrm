@@ -25,7 +25,7 @@ SUITE(ECalcTests) {
     Handlist::collection_t hands(
         {new RandomHandlist(), new RandomHandlist()});
     result_collection res = calc.evaluate(hands, board, dead, NB_SAMPLES);
-    std::cout << "" << res[0].pwin() << "," << res[0].pwin2() << "\n"; 
+    std::cout << "" << res[0].pwin() << "," << res[0].pwin2() << "" << std::endl;; 
 
     CHECK_CLOSE(0.5, res[0].pwin_tie(), 0.02);
     CHECK_CLOSE(0.5, res[1].pwin_tie(), 0.02);

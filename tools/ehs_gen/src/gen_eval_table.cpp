@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   ecalc::SingleHandlist handlist(poker::Hand(1, 2));
 
   //EHSLookup looker("ehs.dat");
-  //std::cout << "id 0 equity = " << looker.raw(0,0) << "\n";
+  //std::cout << "id 0 equity = " << looker.raw(0,0) << "" << std::endl;
   //exit(1);
 
   std::ofstream file(options.dump_to);
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     thread_block_size.back() += round_size - options.nb_threads * per_block;
 
     std::cout << "Evaluating round " << r << " with " << round_size
-              << " hands\n";
+              << " hands" << std::endl;
     std::vector<std::thread> eval_threads(options.nb_threads);
     size_t accumulator = 0;
     std::vector<float> equities(round_size);
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
                   calcs[t]->evaluate_vs_random(&handlist, 1, board, {},
                                           options.nb_samples[r])[0].pwin_tie();
                   if(i == 0){
-                    std::cout << "id 0 equity: " << equities[i] << "\n";
+                    std::cout << "id 0 equity: " << equities[i] << "" << std::endl;
                   }
             }
           });
@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
     for (int t = 0; t < options.nb_threads; ++t)
       eval_threads[t].join();
 
-    std::cout << "done. writing to file.\n";
+    std::cout << "done. writing to file." << std::endl;
     for (size_t s = 0; s < round_size; ++s)
       file.write(reinterpret_cast<const char *>(&equities[s]), sizeof(equities[s]));
   }
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
   //}
 
   file.close();
-  std::cout << "done.\n";
+  std::cout << "done." << std::endl;
 
   return 0;
 }

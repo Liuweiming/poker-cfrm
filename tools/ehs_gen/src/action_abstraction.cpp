@@ -46,10 +46,10 @@ action_c NullActionAbstraction::get_actions(const Game *game,
   }
 
   actions.resize(num_actions);
-  //std::cout << "actions: \n";
+  //std::cout << "actions: " << std::endl;
   //for(unsigned i = 0; i < actions.size(); ++i)
       //std::cout << ActionsStr[actions[i].type] << " ";
-  //std::cout << "\n";
+  //std::cout << "" << std::endl;
 
   /* If you hit this assert, there are too many abstract actions allowed.
    * Either coarsen the betting abstraction or increase MAX_ABSTRACT_ACTIONS
@@ -81,8 +81,8 @@ action_c PotRelationActionAbstraction::get_actions(const Game *game,
       int32_t max_raise_size;
       int32_t pot_size = state.spent[0] + state.spent[1];
       if (raiseIsValid(game, &state, &min_raise_size, &max_raise_size)) {
-          //std::cout << "min_raise: " << min_raise_size << "\tmax_size: " << max_raise_size << "\tmax_spent:" << state.maxSpent<< "\n";
-      //std::cout << "min: " << min_raise_size << ", max: " << max_raise_size << ", pot: " << pot_size << ",max spent: " << state.maxSpent << "\n";
+          //std::cout << "min_raise: " << min_raise_size << "\tmax_size: " << max_raise_size << "\tmax_spent:" << state.maxSpent<< "" << std::endl;
+      //std::cout << "min: " << min_raise_size << ", max: " << max_raise_size << ", pot: " << pot_size << ",max spent: " << state.maxSpent << "" << std::endl;
         for (int s = 0; s < fractions.size(); ++s) {
           int32_t raise_size = state.maxSpent + fractions[s] * pot_size;
           if( raise_size > max_raise_size )
@@ -90,9 +90,9 @@ action_c PotRelationActionAbstraction::get_actions(const Game *game,
           if( raise_size < min_raise_size )
               raise_size = min_raise_size;
 
-          //std::cout << "raise idx: " << s << "\t size: " << raise_size << "\n";
+          //std::cout << "raise idx: " << s << "\t size: " << raise_size << "" << std::endl;
 
-          //std::cout << "attempting to raise: " << raise_size << "\n";
+          //std::cout << "attempting to raise: " << raise_size << "" << std::endl;
 
           assert(raise_size > 0);
           actions[num_actions] = action;
@@ -121,12 +121,12 @@ action_c PotRelationActionAbstraction::get_actions(const Game *game,
       ++num_actions;
     }
   }
-  //std::cout << "actions: " << num_actions << "\n";
+  //std::cout << "actions: " << num_actions << "" << std::endl;
 
   actions.resize(num_actions);
   assert( !error );
   //for(unsigned i = 0; i < actions.size(); ++i){
-      //std::cout << i  << "\n";
+      //std::cout << i  << "" << std::endl;
       //if(actions[i].type == a_raise)
         //assert(actions[i].size > 0);
   //}

@@ -92,32 +92,32 @@ int main(int argc, char **argv) {
   read_game((char *)options.game_definition.c_str());
 
   if (options.threshold > 0)
-    cout << "using thresholding with param: " << options.threshold << "\n";
+    cout << "using thresholding with param: " << options.threshold << "" << std::endl;;
 
   cout << "using information abstraction type: "
        << card_abstraction_str[options.card_abs]
-       << " with parameter: " << options.card_abs_param << "\n";
+       << " with parameter: " << options.card_abs_param << "" << std::endl;;
   CardAbstraction *card_abs =
       load_card_abstraction(gamedef, options.card_abs, options.card_abs_param);
 
   cout << "using action abstraction type: "
        << action_abstraction_str[options.action_abs]
-       << " with parameter: " << options.action_abs_param << "\n";
+       << " with parameter: " << options.action_abs_param << "" << std::endl;;
   ActionAbstraction *action_abs = load_action_abstraction(
       gamedef, options.action_abs, options.action_abs_param);
 
   AbstractGame *agame = new HoldemGame(gamedef, card_abs, action_abs, NULL);
-  cout << "created holdem game tree.\n";
+  cout << "created holdem game tree." << std::endl;;
   CFRM *cfr = new CFR_SAMPLER(agame, (char *)options.init_strategy.c_str());
-  cout << "CFR Initialized\n";
-  std::cout << "Number of informationsets:" << agame->get_nb_infosets() << "\n";
+  cout << "CFR Initialized" << std::endl;;
+  std::cout << "Number of informationsets:" << agame->get_nb_infosets() << "" << std::endl;;
   std::cout << "Number of terminalnodes:"
-            << cfr->count_terminal_nodes(agame->game_tree_root()) << "\n";
+            << cfr->count_terminal_nodes(agame->game_tree_root()) << "" << std::endl;;
 
   /* connect to the dealer */
    sock = connectTo((char *)options.host.c_str(), options.port);
    if (sock < 0) {
-   std::cout << "could not connect to socket\n";
+   std::cout << "could not connect to socket" << std::endl;;
    exit(EXIT_FAILURE);
   }
    toServer = fdopen(sock, "w");
@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
     // lookup current node we are in
     InformationSetNode *curr_node = (InformationSetNode *)cfr->lookup_state(
         &state.state, state.viewingPlayer);
-    //std::cout << "i am behind lookup\n";
+    //std::cout << "i am behind lookup" << std::endl;;
 
     // CHECK IF WE FOUND THE CORRECT NODE
     if (curr_node != NULL) {
@@ -197,10 +197,10 @@ int main(int argc, char **argv) {
         board.push_back(state.state.boardCards[c]);
       }
       //}
-      // std::cout << int(hand[0]) << "," << int(hand[1]) << "\n";
+      // std::cout << int(hand[0]) << "," << int(hand[1]) << "" << std::endl;;
       // for(unsigned i = 0; i < board.size(); ++i)
       // std::cout << int(board[i]) << " ";
-      // std::cout << "\n";
+      // std::cout << "" << std::endl;;
       //
 
       auto strategy = cfr->get_normalized_avg_strategy(
@@ -209,7 +209,7 @@ int main(int argc, char **argv) {
       //cout << "prev: ";
       //for(unsigned i = 0; i < strategy.size();++i)
         //cout << strategy[i] << " ";
-      //cout << "\n";
+      //cout << "" << std::endl;;
 
       if (options.threshold > 0) {
         threshold_strategy(strategy, options.threshold);
@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
       //cout << "thresholded: ";
       //for(unsigned i = 0; i < strategy.size();++i)
         //cout << strategy[i] << " ";
-      //cout << "\n";
+      //cout << "" << std::endl;;
 
       // choose according to distribution
       std::discrete_distribution<int> d(strategy.begin(), strategy.end());
@@ -232,7 +232,7 @@ int main(int argc, char **argv) {
         --max_tries;
         //std::cout << "#" << max_tries
                   //<< " choosen action: " << ActionsStr[action.type] << " = "
-                  //<< action.size << "\n";
+                  //<< action.size << "" << std::endl;;
         if(isValidAction(gamedef, &state.state, 0, &action))
             break;
       } while (max_tries > 0);
@@ -242,18 +242,18 @@ int main(int argc, char **argv) {
     } else {
     LASTRESCUE:
       std::cout
-          << "state not found in game tree. forcing first possible action.\n";
+          << "state not found in game tree. forcing first possible action." << std::endl;;
       for (a = 0; a < NUM_ACTION_TYPES; ++a) {
         action.type = (ActionType)a;
         if (isValidAction(gamedef, &state.state, 0, &action))
           break;
       }
-      cout << "choosen action is " << ActionsStr[action.type] << "\n";
+      cout << "choosen action is " << ActionsStr[action.type] << "" << std::endl;;
     }
 
     //[> do the action! <]
     assert(isValidAction(gamedef, &state.state, 0, &action));
-    cout << "choosen action: " << ActionsStr[action.type] << "= " << action.size << "\n";
+    cout << "choosen action: " << ActionsStr[action.type] << "= " << action.size << "" << std::endl;;
      r = printAction(gamedef, &action, MAX_LINE_LEN - len - 2, &line[len]);
      if (r < 0) {
 
@@ -323,7 +323,7 @@ int parse_options(int argc, char **argv) {
     }
 
     if (vm.count("help")) {
-      cout << desc << "\n";
+      cout << desc << "" << std::endl;;
       return 1;
     }
   }
@@ -337,12 +337,12 @@ int parse_options(int argc, char **argv) {
 void read_game(char *game_definition) {
   FILE *file = fopen(game_definition, "r");
   if (file == NULL) {
-    std::cout << "could not read game file\n";
+    std::cout << "could not read game file" << std::endl;;
     exit(-1);
   }
   gamedef = readGame(file);
   if (gamedef == NULL) {
-    std::cout << "could not parse game file\n";
+    std::cout << "could not parse game file" << std::endl;;
     exit(-1);
   }
 }

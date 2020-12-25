@@ -71,19 +71,19 @@ int main(int argc, char **argv) {
   if (parse_options(argc, argv) == 1)
     return 1;
 
-  cout << "initializing rng with seed: " << options.seed << "\n";
+  cout << "initializing rng with seed: " << options.seed << "" << std::endl;;
   nbgen rng(options.seed);
   boost::mt19937 clusterrng(options.seed); // for clustering
 
-  cout << "loading handranks from: " << options.handranks_path << "\n";
+  cout << "loading handranks from: " << options.handranks_path << "" << std::endl;;
   handranks = new ecalc::Handranks(options.handranks_path.c_str());
 
-  cout << "loading ehslookup from: " << options.ehs_path << "\n";
+  cout << "loading ehslookup from: " << options.ehs_path << "" << std::endl;;
   ehslp = new EHSLookup(options.ehs_path.c_str());
 
   if (options.print_hand_hist != "") {
     poker::Hand hand = poker::Hand(options.print_hand_hist);
-    // cout << hand.str() << "\n";
+    // cout << hand.str() << "" << std::endl;;
 
     std::ofstream tmp("tmp");
     EMDAbstractionGenerator *generator = new EMDAbstractionGenerator(
@@ -104,20 +104,20 @@ int main(int argc, char **argv) {
 
     double step = 1.0 / feature.histogram.size();
     for (unsigned i = 0; i < feature.histogram.size(); ++i) {
-      cout << ((step * i) + (step / 2)) << "\t" << feature.histogram[i] << "\n";
+      cout << ((step * i) + (step / 2)) << "\t" << feature.histogram[i] << "" << std::endl;;
     }
 
     exit(1);
   }
 
   if (options.save_to == "") {
-    cout << "save_to argument required.\n";
+    cout << "save_to argument required." << std::endl;;
     exit(1);
   }
   std::ofstream dump_to(options.save_to, std::ios::out | std::ios::binary);
 
   cout << "computing abstraction using " << metric_str[options.metric]
-       << " metric.\n";
+       << " metric." << std::endl;;
 
   AbstractionGenerator *generator, *ehs, *emd, *si, *ochs;
   si = new SuitIsomorphAbstractionGenerator(dump_to);
@@ -165,10 +165,10 @@ int main(int argc, char **argv) {
 
   std::vector<histogram_c> round_centers(4);
   generator->generate(rng, round_centers);
-  cout << "saved abstraction to " << options.save_to << "\n";
+  cout << "saved abstraction to " << options.save_to << "" << std::endl;;
   if (options.dump_centers) {
     cout << "saving round cluster centers to " << options.save_to << "."
-         << ".center\n";
+         << ".center" << std::endl;;
     std::ofstream centerf(options.save_to + ".center",
                           std::ios::out | std::ios::binary);
     dump_centers(centerf, round_centers);
@@ -243,33 +243,33 @@ int parse_options(int argc, char **argv) {
 
     if (vm.count("buckets")) {
       std::cout << "number of buckets per round set to: "
-                << vm["buckets"].as<string>() << "\n";
+                << vm["buckets"].as<string>() << "" << std::endl;;
       options.nb_buckets = str_to_int_list(vm["buckets"].as<string>(), ',');
     }
 
     if (vm.count("history-points")) {
       std::cout << "number of history-points per round set to: "
-                << vm["history-points"].as<string>() << "\n";
+                << vm["history-points"].as<string>() << "" << std::endl;;
       options.num_history_points =
           str_to_int_list(vm["history-points"].as<string>(), ',');
     }
 
     if (vm.count("nb-hist-samples-per-round")) {
       std::cout << "number of hist-samples-per-round per round set to: "
-                << vm["nb-hist-samples-per-round"].as<string>() << "\n";
+                << vm["nb-hist-samples-per-round"].as<string>() << "" << std::endl;;
       options.nb_hist_samples_per_round =
           str_to_int_list(vm["nb-hist-samples-per-round"].as<string>(), ',');
     }
 
     if (vm.count("nb-samples")) {
       std::cout << "number of samples per round set to: "
-                << vm["nb-samples"].as<string>() << "\n";
+                << vm["nb-samples"].as<string>() << "" << std::endl;;
       options.nb_samples = str_to_int_list(vm["nb-samples"].as<string>(), ',');
     }
 
     if (vm.count("err-bounds-per-round")) {
       std::cout << "error bounds per round set to: "
-                << vm["err-bounds-per-round"].as<string>() << "\n";
+                << vm["err-bounds-per-round"].as<string>() << "" << std::endl;;
       options.clustering_target_precision = str_to_dbl_list(vm["err-bounds-per-round"].as<string>(), ',');
     }
 
@@ -292,15 +292,15 @@ int parse_options(int argc, char **argv) {
     }
 
     if (vm.count("help")) {
-      cout << desc << "\n";
+      cout << desc << "" << std::endl;;
       return 1;
     }
   }
   catch (exception &e) {
-    std::cout << e.what() << "\n";
+    std::cout << e.what() << "" << std::endl;;
   }
   catch (...) {
-    std::cout << "unknown error while parsing options.\n";
+    std::cout << "unknown error while parsing options." << std::endl;;
   }
   return 0;
 }

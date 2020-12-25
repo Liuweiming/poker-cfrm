@@ -62,23 +62,23 @@ vector<vector<double>> CFRM::abstract_br_infoset(INode *curr_node,
                                                             node->get_round());
 
   vector<vector<double>> probabilities(nb_buckets);
-  std::cout << "path:" << path << "\n";
-  std::cout << "info_idx:" << info_idx << "\n";
-  std::cout << "idx:" << node->hand_idx << "\n";
-  std::cout << "round:" << node->get_round() << "\n";
-  std::cout << "path:" << path << "\n";
-  std::cout << "prob:" << probabilities.size() << "\n";
-  std::cout << "op:" << op.size() << "\n";
-  std::cout << "buckets:" << nb_buckets << "\n";
+  std::cout << "path:" << path << "" << std::endl;;
+  std::cout << "info_idx:" << info_idx << "" << std::endl;;
+  std::cout << "idx:" << node->hand_idx << "" << std::endl;;
+  std::cout << "round:" << node->get_round() << "" << std::endl;;
+  std::cout << "path:" << path << "" << std::endl;;
+  std::cout << "prob:" << probabilities.size() << "" << std::endl;;
+  std::cout << "op:" << op.size() << "" << std::endl;;
+  std::cout << "buckets:" << nb_buckets << "" << std::endl;;
   for (unsigned i = 0; i < nb_buckets; ++i) {
     probabilities[i] = get_normalized_avg_strategy(info_idx, i);
   }
 
-  std::cout << "probabilities:\n";
+  std::cout << "probabilities:" << std::endl;;
   for (unsigned i = 0; i < probabilities.size(); ++i) {
     for (unsigned j = 0; j < probabilities[i].size(); ++j)
       std::cout << probabilities[i][j] << " ";
-    std::cout << "\n";
+    std::cout << "" << std::endl;;
   }
 
    vector<INode *> children = node->get_children();
@@ -217,7 +217,7 @@ void CFRM::print_strategy_r(unsigned player, INode *curr_node,
   std::string newpath;
 
   if (node->get_player() == player) {
-    std::cout << path << ":\n";
+    std::cout << path << ":" << std::endl;;
     for (unsigned i = 0; i < children.size(); ++i) {
       last_action = children[i]->get_action();
       std::cout << " " << ActionsStr[last_action.type]
@@ -227,9 +227,9 @@ void CFRM::print_strategy_r(unsigned player, INode *curr_node,
         auto strategy = get_normalized_avg_strategy(info_idx, b);
         std::cout << std::setprecision(3) << strategy[i] << " ";
       }
-      std::cout << "\n";
+      std::cout << "" << std::endl;;
     }
-    std::cout << "\n";
+    std::cout << "" << std::endl;;
 
     for (unsigned i = 0; i < children.size(); ++i) {
       std::string phase_sw =

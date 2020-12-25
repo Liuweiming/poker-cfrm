@@ -1,0 +1,20 @@
+nohup: ignoring input
+number of buckets per round set to: 169,5000,5000,5000
+number of history-points per round set to: 50,50,50,8
+number of hist-samples-per-round per round set to: 100,2652,52,2652
+initializing rng with seed: 1608796130
+loading handranks from: ./handranks.dat
+loading ehslookup from: ./ehs.dat
+computing abstraction using SUIT-ISOMORPH EMD EMD OCHS metric.
+round 0 eval and clustering took: 0 sec.
+evaluating round 1 holdings.
+0%62%100%
+clustering 1286792 holdings into 5000 buckets...
+#1 elements changed: 1285955 -> 99.934955%
+#2 elements changed: 1285965 -> 99.935732%
+#3 elements changed: 0 -> 0.000000%
+writing abstraction for round to file...
+done.
+round 1 eval and clustering took: 28096 sec.
+evaluating round 2 holdings.
+0%5%11%17%22%28%34%40%45%51%57%63%68%74%80%85%91%97%

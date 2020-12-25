@@ -62,24 +62,24 @@ unsigned curr_check = 1;
   if (parse_options(argc, argv) == 1)
     return 1;
 
-  cout << "initializing rng with seed: " << options.seed << "\n";
+  cout << "initializing rng with seed: " << options.seed << "" << std::endl;;
   nbgen rng(options.seed);
 
-  cout << "loading handranks from: " << options.handranks_path << "\n";
+  cout << "loading handranks from: " << options.handranks_path << "" << std::endl;;
   handranks = new ecalc::Handranks(options.handranks_path.c_str());
 
-  cout << "reading gamedefinition from: " << options.game_definition << "\n";
+  cout << "reading gamedefinition from: " << options.game_definition << "" << std::endl;;
   read_game((char *)options.game_definition.c_str());
 
   cout << "using information abstraction type: "
        << card_abstraction_str[options.card_abs]
-       << " with parameter: " << options.card_abs_param << "\n";
+       << " with parameter: " << options.card_abs_param << "" << std::endl;;
   CardAbstraction *card_abs =
       load_card_abstraction(gamedef, options.card_abs, options.card_abs_param);
 
   cout << "using action abstraction type: "
        << action_abstraction_str[options.action_abs]
-       << " with parameter: " << options.action_abs_param << "\n";
+       << " with parameter: " << options.action_abs_param << "" << std::endl;;
   ActionAbstraction *action_abs = load_action_abstraction(
       gamedef, options.action_abs, options.action_abs_param);
 
@@ -105,16 +105,16 @@ unsigned curr_check = 1;
   if (options.init_strategy == "")
     cfr = new CFR_SAMPLER(game);
   else {
-    std::cout << "Initializing tree with " << options.init_strategy << "\n";
+    std::cout << "Initializing tree with " << options.init_strategy << "" << std::endl;;
     cfr = new CFR_SAMPLER(game, (char *)options.init_strategy.c_str());
   }
 
   //std::cout << "Game tree size: " << cfr->count_bytes(game->game_tree_root()) /
-                                         //1024 << " kb\n";
+                                         //1024 << " kb" << std::endl;;
 
-  std::cout << "Number of informationsets:" << game->get_nb_infosets() << "\n";
-  std::cout << "Number of terminalnodes:" << cfr->count_terminal_nodes(game->game_tree_root()) << "\n";
-  std::cout << "Number of states:" << cfr->count_states(game->game_tree_root()) << "\n";
+  std::cout << "Number of informationsets:" << game->get_nb_infosets() << "" << std::endl;;
+  std::cout << "Number of terminalnodes:" << cfr->count_terminal_nodes(game->game_tree_root()) << "" << std::endl;;
+  std::cout << "Number of states:" << cfr->count_states(game->game_tree_root()) << "" << std::endl;;
 
 
   auto runtime = ch::milliseconds((int)(options.runtime * 1000));
@@ -159,13 +159,13 @@ unsigned curr_check = 1;
     if (options.print_best_response) {
       vector<double> br = cfr->best_response();
       cout << "BR :" << br[0] << " + " << br[1] << " = " << br[0] + br[1]
-           << "\n";
+           << "" << std::endl;;
     }
 
     if (options.print_abstract_best_response) {
       vector<double> br = cfr->abstract_best_response();
       cout << "ABR :" << br[0] << " + " << br[1] << " = " << br[0] + br[1]
-           << "\n";
+           << "" << std::endl;;
     }
 
     if (options.dump_strategy != "") {
@@ -173,7 +173,7 @@ unsigned curr_check = 1;
       for (unsigned i = 0; i < iter_threads_cnt.size(); ++i)
         iter_cnt_sum += iter_threads_cnt[i];
       std::string checkfile = options.dump_strategy + "." + std::to_string(curr_check);
-      cout << "Saving current strategy to " << checkfile << "...\n";
+      cout << "Saving current strategy to " << checkfile << "..." << std::endl;;
       cfr->dump((char *)checkfile.c_str());
       ++curr_check;
     }
@@ -181,9 +181,9 @@ unsigned curr_check = 1;
     size_t iter_cnt_sum = 0;
     for (unsigned i = 0; i < iter_threads_cnt.size(); ++i)
       iter_cnt_sum += iter_threads_cnt[i];
-    std::cout << "#iterations: " << comma_format(iter_cnt_sum) << "\n";
+    std::cout << "#iterations: " << comma_format(iter_cnt_sum) << "" << std::endl;;
     if(options.nb_target_iterations > 0 && iter_cnt_sum >= options.nb_target_iterations){
-        std::cout << "specified iterations reached. exiting.\n"; 
+        std::cout << "specified iterations reached. exiting." << std::endl;; 
         break; 
     }
 
@@ -200,17 +200,17 @@ unsigned curr_check = 1;
   size_t iter_cnt_sum = 0;
   for (unsigned i = 0; i < iter_threads_cnt.size(); ++i)
     iter_cnt_sum += iter_threads_cnt[i];
-  std::cout << "#iterations: " << comma_format(iter_cnt_sum) << "\n";
+  std::cout << "#iterations: " << comma_format(iter_cnt_sum) << "" << std::endl;;
    //std::cout << "Public tree size: "
-  //<< cfr->count_bytes(game->public_tree_root()) / 1024 << " kb\n";
+  //<< cfr->count_bytes(game->public_tree_root()) / 1024 << " kb" << std::endl;;
 
   if (options.dump_strategy != "")
     cfr->dump((char *)options.dump_strategy.c_str());
 
   if (options.print_strategy) {
-    std::cout << "PLAYER 1:\n";
+    std::cout << "PLAYER 1:" << std::endl;;
     cfr->print_strategy(0);
-    std::cout << "PLAYER 2:\n";
+    std::cout << "PLAYER 2:" << std::endl;;
     cfr->print_strategy(1);
   }
 
@@ -260,7 +260,7 @@ int parse_options(int argc, char **argv) {
     po::notify(vm);
 
     if (vm.count("iterations")) {
-        std::cout << "number of target iterations set to: " << vm["iterations"].as<size_t>() << "\n";
+        std::cout << "number of target iterations set to: " << vm["iterations"].as<size_t>() << "" << std::endl;;
     }
 
     if (vm.count("game-type")) {
@@ -290,15 +290,15 @@ int parse_options(int argc, char **argv) {
     }
 
     if (vm.count("help")) {
-      cout << desc << "\n";
+      cout << desc << "" << std::endl;;
       return 1;
     }
   }
   catch (exception &e) {
-    std::cout << e.what() << "\n";
+    std::cout << e.what() << "" << std::endl;;
   }
   catch (...) {
-    std::cout << "unknown error while parsing options.\n";
+    std::cout << "unknown error while parsing options." << std::endl;;
   }
   return 0;
 }
@@ -306,12 +306,12 @@ int parse_options(int argc, char **argv) {
 void read_game(char *game_definition) {
   FILE *file = fopen(game_definition, "r");
   if (file == NULL) {
-    std::cout << "could not read game file\n";
+    std::cout << "could not read game file" << std::endl;;
     exit(-1);
   }
   gamedef = readGame(file);
   if (gamedef == NULL) {
-    std::cout << "could not parse game file\n";
+    std::cout << "could not parse game file" << std::endl;;
     exit(-1);
   }
 }
