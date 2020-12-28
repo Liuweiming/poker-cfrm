@@ -292,7 +292,7 @@ int parse_options(int argc, char **argv) {
         "parameter for card abstraction")(
         "host,o", po::value<string>(&options.host), "host to connect to")(
         "port,p", po::value<unsigned>(&options.port), "port to connect to")(
-        "init-stategy,i", po::value<string>(&options.init_strategy),
+        "init-strategy,i", po::value<string>(&options.init_strategy),
         "initialize regrets and avg strategy from file")(
         "gamedef,g", po::value<string>(&options.game_definition),
         "gamedefinition to use")(
@@ -328,6 +328,8 @@ int parse_options(int argc, char **argv) {
     }
   }
   catch (exception &e) {
+    std::cout << "unable to parse parameters" << std::endl;
+    return 1;
   }
   catch (...) {
   }
