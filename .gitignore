@@ -1,12 +1,14 @@
 *.strategy
 *.strat
-*.card_abs
 *.test
 *.swp
 *.o
+*.card_abs
+*.center
+*.txt
+*.dat
 *.d
 *.log
-*.dat
 *.plot
 test.abs
 strategies/*

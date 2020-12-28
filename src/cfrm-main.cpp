@@ -117,9 +117,9 @@ unsigned curr_check = 1;
   std::cout << "Number of states:" << cfr->count_states(game->game_tree_root()) << "" << std::endl;;
 
 
-  auto runtime = ch::milliseconds((int)(options.runtime * 1000));
+  auto runtime = ch::milliseconds((long long)(options.runtime * 1000));
   auto checkpoint_time =
-      ch::milliseconds((int)(options.checkpoint_time * 1000));
+      ch::milliseconds((long long)(options.checkpoint_time * 1000));
   auto start = ch::steady_clock::now();
   auto checkpoint_start = ch::steady_clock::now();
   bool pause_threads = false;
@@ -318,7 +318,7 @@ void read_game(char *game_definition) {
 
 template <class T> std::string comma_format(T value) {
   std::stringstream ss;
-  ss.imbue(std::locale(""));
+  // ss.imbue(std::locale(""));
   ss << std::fixed << value;
   return ss.str();
 }

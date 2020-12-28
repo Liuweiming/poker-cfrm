@@ -62,24 +62,24 @@ vector<vector<double>> CFRM::abstract_br_infoset(INode *curr_node,
                                                             node->get_round());
 
   vector<vector<double>> probabilities(nb_buckets);
-  std::cout << "path:" << path << "" << std::endl;;
-  std::cout << "info_idx:" << info_idx << "" << std::endl;;
-  std::cout << "idx:" << node->hand_idx << "" << std::endl;;
-  std::cout << "round:" << node->get_round() << "" << std::endl;;
-  std::cout << "path:" << path << "" << std::endl;;
-  std::cout << "prob:" << probabilities.size() << "" << std::endl;;
-  std::cout << "op:" << op.size() << "" << std::endl;;
-  std::cout << "buckets:" << nb_buckets << "" << std::endl;;
+  // std::cout << "path:" << path << "" << std::endl;;
+  // std::cout << "info_idx:" << info_idx << "" << std::endl;;
+  // std::cout << "idx:" << node->hand_idx << "" << std::endl;;
+  // std::cout << "round:" << node->get_round() << "" << std::endl;;
+  // std::cout << "path:" << path << "" << std::endl;;
+  // std::cout << "prob:" << probabilities.size() << "" << std::endl;;
+  // std::cout << "op:" << op.size() << "" << std::endl;;
+  // std::cout << "buckets:" << nb_buckets << "" << std::endl;;
   for (unsigned i = 0; i < nb_buckets; ++i) {
     probabilities[i] = get_normalized_avg_strategy(info_idx, i);
   }
 
-  std::cout << "probabilities:" << std::endl;;
-  for (unsigned i = 0; i < probabilities.size(); ++i) {
-    for (unsigned j = 0; j < probabilities[i].size(); ++j)
-      std::cout << probabilities[i][j] << " ";
-    std::cout << "" << std::endl;;
-  }
+  // std::cout << "probabilities:" << std::endl;;
+  // for (unsigned i = 0; i < probabilities.size(); ++i) {
+  //   for (unsigned j = 0; j < probabilities[i].size(); ++j)
+  //     std::cout << probabilities[i][j] << " ";
+  //   std::cout << "" << std::endl;;
+  // }
 
    vector<INode *> children = node->get_children();
    vector<vector<vector<double>>> payoffs(children.size());
