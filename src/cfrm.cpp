@@ -39,14 +39,14 @@ std::vector<double> CFRM::abstract_best_response() {
                   vector<vector<double>>(game->get_gamedef()->numPlayers,
                                          vector<double>(1, 1.0)),
                   "");
-    std::vector<double> out(result.size());
-    for (unsigned i = 0; i < result.size(); ++i)
-      out[i] = result[i][0];
+  std::vector<double> out(result.size());
+  for (unsigned i = 0; i < result.size(); ++i) out[i] = result[i][0];
   return out;
 }
 
-vector<std::vector<double>>
-CFRM::abstract_br(INode *curr_node, vector<vector<double>> op, std::string path) {
+vector<std::vector<double>> CFRM::abstract_br(INode *curr_node,
+                                              vector<vector<double>> op,
+                                              std::string path) {
   if (curr_node->is_terminal()) {
     return abstract_br_terminal(curr_node, op, path);
   }
@@ -81,58 +81,57 @@ vector<vector<double>> CFRM::abstract_br_infoset(INode *curr_node,
   //   std::cout << "" << std::endl;;
   // }
 
-   vector<INode *> children = node->get_children();
-   vector<vector<vector<double>>> payoffs(children.size());
-   unsigned curr_player = node->get_player();
-   for (unsigned a = 0; a < children.size(); ++a) {
-     vector<vector<double>> newop(op);
+  vector<INode *> children = node->get_children();
+  vector<vector<vector<double>>> payoffs(children.size());
+  unsigned curr_player = node->get_player();
+  for (unsigned a = 0; a < children.size(); ++a) {
+    vector<vector<double>> newop(op);
 
-     for (unsigned h = 0; h < newop[curr_player].size(); ++h) {
-       newop[curr_player][h] *= probabilities[h][a];
-     }
-     payoffs[a] = abstract_br(children[a],newop,"");
-   }
+    for (unsigned h = 0; h < newop[curr_player].size(); ++h) {
+      newop[curr_player][h] *= probabilities[h][a];
+    }
+    payoffs[a] = abstract_br(children[a], newop, "");
+  }
 
   unsigned opp = (curr_player + 1) % 2;
-   double max_val = payoffs[0][curr_player][0];
-   unsigned max_index = 0;
-   for (unsigned a = 1; a < children.size(); ++a) {
-    if(max_val < payoffs[a][curr_player][0]){
-        max_val = payoffs[a][curr_player][0];
-        max_index = a;
+  double max_val = payoffs[0][curr_player][0];
+  unsigned max_index = 0;
+  for (unsigned a = 1; a < children.size(); ++a) {
+    if (max_val < payoffs[a][curr_player][0]) {
+      max_val = payoffs[a][curr_player][0];
+      max_index = a;
     }
-   }
+  }
 
-   vector<vector<double>> result(2,vector<double>(1,0));
-   result[curr_player][0] = max_val;
-   result[opp][0] = payoffs[max_index][opp][0];
-   return result;
+  vector<vector<double>> result(2, vector<double>(1, 0));
+  result[curr_player][0] = max_val;
+  result[opp][0] = payoffs[max_index][opp][0];
+  return result;
 }
 
 vector<vector<double>> CFRM::abstract_br_terminal(INode *curr_node,
                                                   vector<vector<double>> op,
                                                   std::string path) {
   vector<vector<double>> payoffs(op.size(), vector<double>(op[0].size(), 0));
-    vector<vector<double>> result(op.size(), vector<double>(1,0));
+  vector<vector<double>> result(op.size(), vector<double>(1, 0));
 
   if (curr_node->is_fold()) {
     FoldNode *node = (FoldNode *)curr_node;
     int fold_player = node->fold_player;
     int money_f = node->value;
 
-vector<double> opp_ges_p(2,0);
-for (unsigned p = 0; p < op.size(); ++p) {
-  unsigned opp = (p + 1) % 2;
-  for (unsigned g = 0; g < op[0].size(); ++g) {
-      payoffs[p][g] = op[opp][g] * (p == fold_player ? -1.0 : 1.0) * money_f;
-    result[p][0] += payoffs[p][g];
-    opp_ges_p[p] += op[opp][g];
-  }
-  result[p][0] *= (1.0/opp_ges_p[p]);
-}
+    vector<double> opp_ges_p(2, 0);
+    for (unsigned p = 0; p < op.size(); ++p) {
+      unsigned opp = (p + 1) % 2;
+      for (unsigned g = 0; g < op[0].size(); ++g) {
+        payoffs[p][g] = op[opp][g] * (p == fold_player ? -1.0 : 1.0) * money_f;
+        result[p][0] += payoffs[p][g];
+        opp_ges_p[p] += op[opp][g];
+      }
+      result[p][0] *= (1.0 / opp_ges_p[p]);
+    }
 
-
-return result;
+    return result;
   }
 
   // showdown
@@ -140,20 +139,18 @@ return result;
 
   int money = node->value;
 
-vector<double> opp_ges_p(2,0);
-for (unsigned p = 0; p < op.size(); ++p) {
-  unsigned opp = (p + 1) % 2;
-  for (unsigned g = 0; g < op[0].size(); ++g) {
+  vector<double> opp_ges_p(2, 0);
+  for (unsigned p = 0; p < op.size(); ++p) {
+    unsigned opp = (p + 1) % 2;
+    for (unsigned g = 0; g < op[0].size(); ++g) {
       payoffs[p][g] = op[opp][g] * money;
-    result[p][0] += payoffs[p][g];
-    opp_ges_p[p] += op[opp][g];
+      result[p][0] += payoffs[p][g];
+      opp_ges_p[p] += op[opp][g];
+    }
+    result[p][0] *= (1.0 / opp_ges_p[p]);
   }
-  result[p][0] *= (1.0/opp_ges_p[p]);
-}
 
-
-return result;
-
+  return result;
 }
 
 INode *CFRM::lookup_state(const State *state, int player) {
@@ -166,7 +163,7 @@ hand_t CFRM::generate_hand(nbgen &rng) {
 
   uint64_t deckset = -1;
   int deck_size = game->deck_size();
-  std::vector<card_c> hand(2, card_c(game->hand_size()));
+  std::vector<card_c> hand(game->nb_players(), card_c(game->hand_size()));
   for (int p = 0; p < game->nb_players(); ++p) {
     for (int c = 0; c < game->hand_size(); ++c) {
       hand[p][c] = draw_card(deckset, deck, deck.size(), rng);
@@ -203,8 +200,7 @@ void CFRM::print_strategy(unsigned player) {
 
 void CFRM::print_strategy_r(unsigned player, INode *curr_node,
                             std::string path) {
-  if (curr_node->is_terminal())
-    return;
+  if (curr_node->is_terminal()) return;
 
   InformationSetNode *node = (InformationSetNode *)curr_node;
   uint64_t info_idx = node->get_idx();
@@ -217,19 +213,21 @@ void CFRM::print_strategy_r(unsigned player, INode *curr_node,
   std::string newpath;
 
   if (node->get_player() == player) {
-    std::cout << path << ":" << std::endl;;
+    std::cout << path << ":" << std::endl;
+    ;
     for (unsigned i = 0; i < children.size(); ++i) {
       last_action = children[i]->get_action();
       std::cout << " " << ActionsStr[last_action.type]
                 << (last_action.size > 0 ? std::to_string(last_action.size)
-                                         : "") << " " << std::fixed;
+                                         : "")
+                << " " << std::fixed;
       for (unsigned b = 0; b < nb_buckets; ++b) {
         auto strategy = get_normalized_avg_strategy(info_idx, b);
         std::cout << std::setprecision(3) << strategy[i] << " ";
       }
-      std::cout << "" << std::endl;;
+      std::cout << "" << std::endl;
     }
-    std::cout << "" << std::endl;;
+    std::cout << "" << std::endl;
 
     for (unsigned i = 0; i < children.size(); ++i) {
       std::string phase_sw =
@@ -405,8 +403,7 @@ std::vector<vector<double>> CFRM::br_terminal(INode *curr_node,
     unsigned payoff_idx = 0;
     for (unsigned i = 0; i < ph.size(); ++i) {
       for (unsigned j = 0; j < ph.size(); ++j) {
-        if (i == j || game->do_intersect(ph[i], ph[j]))
-          continue;
+        if (i == j || game->do_intersect(ph[i], ph[j])) continue;
 
         double payoff[2] = {(fold_player == 0 ? -1.0 : 1.0) * money_f,
                             (fold_player == 1 ? -1.0 : 1.0) * money_f};
@@ -457,8 +454,7 @@ std::vector<vector<double>> CFRM::br_terminal(INode *curr_node,
 
   for (unsigned i = 0; i < ph.size(); ++i) {
     for (unsigned j = 0; j < ph.size(); ++j) {
-      if (i == j || game->do_intersect(ph[i], ph[j]))
-        continue;
+      if (i == j || game->do_intersect(ph[i], ph[j])) continue;
 
       hand_t hand({ph[i], ph[j]}, node->board);
       game->evaluate(hand);
@@ -509,7 +505,7 @@ std::vector<vector<double>> CFRM::br_infoset(INode *curr_node,
                                                             node->get_round());
 
   card_c deck = bitset_to_deck(game->public_tree_cache[node->hand_idx],
-                               52); // todo variable
+                               52);  // todo variable
   hand_list combos =
       deck_to_combinations(game->get_gamedef()->numHoleCards, deck);
   vector<vector<double>> probabilities(combos.size());
@@ -550,8 +546,7 @@ std::vector<vector<double>> CFRM::br_infoset(INode *curr_node,
       payoffs[i] = vector<double>(op[i].size(), 0);
       for (unsigned j = 0; j < op[i].size(); ++j) {
         for (unsigned action = 0; action < action_payoffs.size(); ++action) {
-          if (action_payoffs[action][i].size() == 0)
-            continue;
+          if (action_payoffs[action][i].size() == 0) continue;
           payoffs[i][j] += action_payoffs[action][i][j];
         }
       }
@@ -581,8 +576,7 @@ std::vector<double> CFRM::best_response() {
                                            vector<double>(1, 1.0)),
                     "");
   std::vector<double> out(result.size());
-  for (unsigned i = 0; i < result.size(); ++i)
-    out[i] = result[i][0];
+  for (unsigned i = 0; i < result.size(); ++i) out[i] = result[i][0];
   return out;
 }
 
@@ -603,9 +597,9 @@ void CFRM::dump(char *filename) {
              sizeof(avg_strategy[i].nb_buckets));
     fs.write(reinterpret_cast<const char *>(&avg_strategy[i].nb_entries),
              sizeof(avg_strategy[i].nb_entries));
-    fs.write(reinterpret_cast<const char *>(&avg_strategy[i].entries[0]),
-             sizeof(avg_strategy[i].entries[0]) *
-                 (avg_strategy[i].entries.size()));
+    fs.write(
+        reinterpret_cast<const char *>(&avg_strategy[i].entries[0]),
+        sizeof(avg_strategy[i].entries[0]) * (avg_strategy[i].entries.size()));
   }
   fs.close();
 }
@@ -622,8 +616,7 @@ double ExternalSamplingCFR::train(int trainplayer, hand_t hand,
   if (curr_node->is_terminal()) {
     if (curr_node->is_fold()) {
       FoldNode *node = (FoldNode *)curr_node;
-      if (trainplayer == node->get_player())
-        return -node->value;
+      if (trainplayer == node->get_player()) return -node->value;
       return node->value;
     }
     // else showdown
@@ -636,11 +629,6 @@ double ExternalSamplingCFR::train(int trainplayer, hand_t hand,
 
     if (node->get_player() == trainplayer) {
       auto strategy = get_strategy(node->get_idx(), bucket);
-
-      entry_t avg = avg_strategy[info_idx];
-      for (unsigned i = 0; i < strategy.size(); ++i)
-        avg_strategy[info_idx][bucket * avg.nb_entries + i] +=
-            (1.0 / op) * p * strategy[i];
 
       std::vector<double> utils(strategy.size());
       double ev = 0;
@@ -660,8 +648,10 @@ double ExternalSamplingCFR::train(int trainplayer, hand_t hand,
     } else {
       auto strategy = get_strategy(info_idx, bucket);
       int action = sample_strategy(strategy, rng);
-      return train(trainplayer, hand, node->get_children()[action], p,
-                   op * strategy[action], rng);
+      entry_t avg = avg_strategy[info_idx];
+      for (unsigned i = 0; i < strategy.size(); ++i)
+        avg_strategy[info_idx][bucket * avg.nb_entries + i] += strategy[i];
+      return train(trainplayer, hand, node->get_children()[action], p, op, rng);
     }
   }
 }
@@ -677,8 +667,7 @@ double ChanceSamplingCFR::train(int trainplayer, hand_t hand, INode *curr_node,
   if (curr_node->is_terminal()) {
     if (curr_node->is_fold()) {
       FoldNode *node = (FoldNode *)curr_node;
-      if (trainplayer == node->get_player())
-        return op * -node->value;
+      if (trainplayer == node->get_player()) return op * -node->value;
       return op * node->value;
     }
     // else showdown

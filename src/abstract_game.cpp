@@ -1,15 +1,17 @@
 #include "abstract_game.hpp"
 #include <algorithm>
-#include <ecalc/types.hpp>
 #include <ecalc/ecalc.hpp>
+#include <ecalc/types.hpp>
 #include "functions.hpp"
+#include "game.h"
 
 AbstractGame::AbstractGame(const Game *game_definition,
                            CardAbstraction *card_abs,
                            ActionAbstraction *action_abs, int nb_threads)
-    : game(game_definition), card_abs(card_abs), action_abs(action_abs),
+    : game(game_definition),
+      card_abs(card_abs),
+      action_abs(action_abs),
       nb_threads(nb_threads) {
-
   uint64_t idx = 0, idi = 0;
   State initial_state;
   initState(game, 0, &initial_state);
@@ -45,8 +47,13 @@ INode *AbstractGame::init_game_tree(Action action, State &state,
   }
 
   uint64_t info_idx = idx++;
-  return new InformationSetNode(info_idx, action, currentPlayer(game, &state),
-                                state.round, children);
+  auto ret = new InformationSetNode(
+      info_idx, action, currentPlayer(game, &state), state.round, children);
+  // char state_str[100];
+  // printState(game, &state, 100, state_str);
+  // std::cout << state_str << std::endl;
+  // std::cout << ret << std::endl;
+  return ret;
 }
 
 bool AbstractGame::do_intersect(card_c v1, card_c v2) {
@@ -65,8 +72,7 @@ unsigned AbstractGame::find_index(card_c v1, vector<card_c> v2) {
     std::sort(v2[i].begin(), v2[i].end());
     std::set_intersection(v1.begin(), v1.end(), v2[i].begin(), v2[i].end(),
                           std::back_inserter(intersect));
-    if (intersect.size() == v1.size())
-      return i;
+    if (intersect.size() == v1.size()) return i;
   }
   throw std::runtime_error("could not find v1 in v2");
 }
@@ -135,8 +141,7 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
       hand_list new_holes;
       hand_list hands = deck_to_combinations(game->numHoleCards, deck);
       for (unsigned j = 0; j < hands.size(); ++j) {
-        if (!do_intersect(newboard, hands[j]))
-          new_holes.push_back(hands[j]);
+        if (!do_intersect(newboard, hands[j])) new_holes.push_back(hands[j]);
       }
 
       ++idx;
@@ -154,8 +159,7 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
             });
         nb_active_threads++;
         if (nb_active_threads >= nb_threads || i == (nb_combinations - 1)) {
-          for (unsigned t = 0; t < nb_threads; ++t)
-            threadpool[t].join();
+          for (unsigned t = 0; t < nb_threads; ++t) threadpool[t].join();
           nb_active_threads = 0;
         }
       } else {
@@ -165,6 +169,10 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
     }
 
     c->children = children;
+    char state_str[100];
+    printState(game, &state, 100, state_str);
+    std::cout << state_str << std::endl;
+    std::cout << c << std::endl;
     return c;
   }
 
@@ -242,13 +250,13 @@ INode *AbstractGame::public_tree_root() {
   if (!public_tree) {
     uint64_t idi = 0;
     public_tree_cache =
-        std::vector<uint64_t>(100); // better estimate initial value
+        std::vector<uint64_t>(100);  // better estimate initial value
     card_c deck = generate_deck(game->numRanks, game->numSuits);
     State initial_state;
     initState(game, 0, &initial_state);
     public_tree = init_public_tree({a_invalid, 0}, initial_state, idi, {}, deck,
                                    game, idi, true);
-    std::cout << idi << "" << std::endl;;
+    std::cout << idi << "" << std::endl;
   }
   return public_tree;
 }
@@ -291,8 +299,7 @@ int LeducGame::rank_hand(int hand, int board) {
   int h = rankOfCard(hand);
   int b = rankOfCard(board);
 
-  if (h == b)
-    return 100;
+  if (h == b) return 100;
   return h;
 }
 
