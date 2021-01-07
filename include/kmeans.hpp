@@ -1,17 +1,18 @@
 #ifndef KMEANS_HPP
 #define KMEANS_HPP
 
-#include <vector>
-#include <cstdlib>
 #include <math.h>
+
 #include <algorithm>
-#include <boost/static_assert.hpp>
 #include <boost/random.hpp>
 #include <boost/random/mersenne_twister.hpp>
+#include <boost/static_assert.hpp>
+#include <cstdlib>
+#include <vector>
 
 #define NULL 0
-#include "emd_hat.hpp"
 #include "definitions.hpp"
+#include "emd_hat.hpp"
 
 // TODO rng einfuegen und epsilon eingestellbar machen
 
@@ -83,8 +84,7 @@ static void kmeans_center_multiple_restarts(
     std::vector<double> distances(nb_center, 0);
     for (unsigned i = 0; i < nb_center; ++i) {
       for (unsigned j = 0; j < nb_center; ++j) {
-        if (j == i)
-          continue;
+        if (j == i) continue;
         double dist = l2_distance(center_c[r][i], center_c[r][j], nb_features);
         distances[i] += dist;
         ++count;
@@ -109,8 +109,7 @@ static void kmeans(cluster_t nb_clusters, dataset_t &dataset,
                    precision_t epsilon = 0.01, void *context = NULL) {
   size_t nb_data, nb_features, accumulator, per_block, changed, iter;
 
-  if (nb_clusters > dataset.size())
-    return;
+  if (nb_clusters > dataset.size()) return;
 
   iter = 0;
   nb_data = dataset.size();
@@ -127,10 +126,9 @@ static void kmeans(cluster_t nb_clusters, dataset_t &dataset,
 
     for (int t = 0; t < nb_threads; ++t) {
       accumulator += thread_block_size[t];
-      eval_threads[t] =
-          std::thread([t, accumulator, &dataset, &thread_block_size,
-                       &nb_clusters, &center, &changed, &distFunc, &nb_features,
-                       &context] {
+      eval_threads[t] = std::thread(
+          [t, accumulator, &dataset, &thread_block_size, &nb_clusters, &center,
+           &changed, &distFunc, &nb_features, &context] {
             cluster_t curr_cluster, min_cluster;
             for (size_t i = (accumulator - thread_block_size[t]);
                  i < accumulator; ++i) {
@@ -144,15 +142,13 @@ static void kmeans(cluster_t nb_clusters, dataset_t &dataset,
               min_cluster = std::distance(
                   variance.begin(),
                   std::min_element(variance.begin(), variance.end()));
-              if (min_cluster != curr_cluster)
-                ++changed;
+              if (min_cluster != curr_cluster) ++changed;
               dataset[i].cluster = min_cluster;
             }
           });
     }
 
-    for (int t = 0; t < nb_threads; ++t)
-      eval_threads[t].join();
+    for (int t = 0; t < nb_threads; ++t) eval_threads[t].join();
 
     std::vector<precision_t> cluster_element_counter(nb_clusters, 0);
     std::vector<std::vector<precision_t>> cluster_probability_mass(
@@ -176,6 +172,7 @@ static void kmeans(cluster_t nb_clusters, dataset_t &dataset,
     ++iter;
     printf("#%zu elements changed: %zu -> %f%%\n", iter, changed,
            100 * ((1.0 * changed) / nb_data));
+    std::cout << std::endl;
   } while ((1.0 * changed) / nb_data > epsilon);
 }
 
