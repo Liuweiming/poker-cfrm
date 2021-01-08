@@ -1,10 +1,11 @@
 #ifndef DEFINITIONS_HPP
 #define DEFINITIONS_HPP
 
-#include <vector>
-#include <limits>
 #include <inttypes.h>
+#include <atomic>
 #include <ecalc/xorshift_generator.hpp>
+#include <limits>
+#include <vector>
 
 #include "entry.hpp"
 
@@ -28,9 +29,25 @@ const double DOUBLE_MAX = std::numeric_limits<double>::max();
 
 static const char *ActionsStr[] = {"F", "C", "R", ""};
 
-typedef int _Bool; // needed by some c includes
+typedef int _Bool;  // needed by some c includes
 
-typedef Entry<double> entry_t;
+class atomic_double : std::atomic<double> {
+public:
+  using std::atomic<double>::atomic;
+  using std::atomic<double>::operator=;
+
+  atomic_double& operator+=(double v) {
+    double old = load(std::memory_order_relaxed);
+    while (!compare_exchange_weak(old, old + v, std::memory_order_release,
+                                  std::memory_order_relaxed))
+      ;
+  }
+  //implicit conversion
+  operator double() const { return load(std::memory_order_relaxed); }
+
+};
+
+typedef Entry<atomic_double> entry_t;
 
 typedef std::vector<uint8_t> card_c;
 typedef std::vector<int> int_c;
