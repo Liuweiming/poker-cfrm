@@ -8,4 +8,5 @@ loading ehslookup from: ./ehs.dat
 computing abstraction using SUIT-ISOMORPH EMD EMD OCHS metric.
 round 0 eval and clustering took: 0 sec.
 evaluating round 1 holdings.
-0%
+0%69%100%
+clustering 1286792 holdings into 10000 buckets...
