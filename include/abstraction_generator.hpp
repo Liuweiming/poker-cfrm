@@ -157,10 +157,14 @@ public:
     for (unsigned i = 0; i < num_history_points.size(); ++i)
       step_size[i] = 1.0 / num_history_points[i];
 
-    assert(hand_indexer_init(1, (uint8_t[]) {2}, &indexer[0]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 3}, &indexer[1]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 4}, &indexer[2]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 5}, &indexer[3]));
+    uint8_t num_cards1[1] = {2};
+    assert(hand_indexer_init(1, num_cards1, &indexer[0]));
+    uint8_t num_cards2[2] = {2, 3};
+    assert(hand_indexer_init(2, num_cards2, &indexer[1]));
+    uint8_t num_cards3[2] = {2, 4};
+    assert(hand_indexer_init(2, num_cards3, &indexer[2]));
+    uint8_t num_cards4[2] = {2, 5};
+    assert(hand_indexer_init(2, num_cards4, &indexer[3]));
   }
 
   unsigned prob_to_bucket(double prob, int round) {
@@ -461,10 +465,14 @@ public:
     for (unsigned i = 0; i < nb_threads; ++i)
       calc[i] = new ecalc::ECalc(hr);
 
-    assert(hand_indexer_init(1, (uint8_t[]) {2}, &indexer[0]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 3}, &indexer[1]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 4}, &indexer[2]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 5}, &indexer[3]));
+    uint8_t num_cards1[1] = {2};
+    assert(hand_indexer_init(1, num_cards1, &indexer[0]));
+    uint8_t num_cards2[2] = {2, 3};
+    assert(hand_indexer_init(2, num_cards2, &indexer[1]));
+    uint8_t num_cards3[2] = {2, 4};
+    assert(hand_indexer_init(2, num_cards3, &indexer[2]));
+    uint8_t num_cards4[2] = {2, 5};
+    assert(hand_indexer_init(2, num_cards4, &indexer[3]));
   }
 
   virtual void generate(nbgen &rng, std::vector<histogram_c> &round_centers) {

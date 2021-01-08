@@ -32,7 +32,7 @@ static const char *ActionsStr[] = {"F", "C", "R", ""};
 typedef int _Bool;  // needed by some c includes
 
 class atomic_double : std::atomic<double> {
-public:
+ public:
   using std::atomic<double>::atomic;
   using std::atomic<double>::operator=;
 
@@ -44,7 +44,7 @@ public:
   }
   //implicit conversion
   operator double() const { return load(std::memory_order_relaxed); }
-
+  
 };
 
 typedef Entry<atomic_double> entry_t;

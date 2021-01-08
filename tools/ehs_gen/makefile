@@ -1,5 +1,5 @@
-CC	 = clang
-CXX	 = clang++ -g
+CC	 = gcc
+CXX	 = g++ -g
 
 CFLAGS ?=-std=c11 -Wall -g -O3
 LDLIBS ?=-c
@@ -15,7 +15,7 @@ CPP_LIBRARIES += -L ../../lib/libpoker/lib/release -lpoker\
 				-lpthread -lboost_program_options
 
 ifeq ($(target),debug)
-	CXXFLAGS +=-O0 -Weverything -Wno-c++98-compat
+	CXXFLAGS +=-O0 -Wall
 else
 	target = release
 	CXXFLAGS +=-O3 -Wall

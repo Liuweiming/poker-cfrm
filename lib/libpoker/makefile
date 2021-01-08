@@ -1,5 +1,5 @@
 # compiler
-CXX = clang++ -g
+CXX = g++ -g
 
 # variables for libecalc
 INCLUDES=-I ./include/poker \
@@ -10,7 +10,7 @@ CXXFLAGS=-m64 -static -ansi -std=c++11 \
 DOC_OUT = doc
 
 ifeq ($(target),debug)
-    CXXFLAGS +=-O0 -Weverything -Wno-c++98-compat #-Werror
+    CXXFLAGS +=-O0 -Wall
 else
     target = release
 	CXXFLAGS +=-O3 -Wall

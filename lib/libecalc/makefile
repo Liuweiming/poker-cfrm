@@ -1,5 +1,5 @@
 # compiler
-CXX = clang++ -g
+CXX = g++ -g
 
 # variables for libecalc
 INCLUDES=-I ./include/ecalc -I ../libpoker/include
@@ -12,7 +12,7 @@ LIBRARIES =
 DOC_OUT = doc
 
 ifeq ($(target),debug)
-    CXXFLAGS +=-O0 -Weverything -Wno-c++98-compat #-Werror
+    CXXFLAGS +=-O0 -Wall
 else
     target = release
 	CXXFLAGS +=-O3 -Wall

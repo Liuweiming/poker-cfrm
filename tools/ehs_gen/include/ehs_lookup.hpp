@@ -15,10 +15,14 @@ class EHSLookup {
 
 public:
   explicit EHSLookup(const char *filename) : lookup(4) {
-    assert(hand_indexer_init(1, (uint8_t[]) {2}, &indexer[0]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 3}, &indexer[1]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 4}, &indexer[2]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 5}, &indexer[3]));
+    uint8_t num_cards1[1] = {2};
+    assert(hand_indexer_init(1, num_cards1, &indexer[0]));
+    uint8_t num_cards2[2] = {2, 3};
+    assert(hand_indexer_init(2, num_cards2, &indexer[1]));
+    uint8_t num_cards3[2] = {2, 4};
+    assert(hand_indexer_init(2, num_cards3, &indexer[2]));
+    uint8_t num_cards4[2] = {2, 5};
+    assert(hand_indexer_init(2, num_cards4, &indexer[3]));
 
     if (!load_lookup(filename))
       throw std::runtime_error("EHSLookup file could not be loaded.");

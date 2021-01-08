@@ -1,11 +1,11 @@
 #ifndef CARD_ABSTRACTION_HPP
 #define CARD_ABSTRACTION_HPP
 
-#include <thread>
-#include <fstream>
 #include <ecalc/ecalc.hpp>
 #include <ecalc/handranks.hpp>
 #include <ecalc/single_handlist.hpp>
+#include <fstream>
+#include <thread>
 #include "definitions.hpp"
 #include "kmeans.hpp"
 
@@ -16,7 +16,7 @@ extern "C" {
 using std::string;
 
 class CardAbstraction {
-public:
+ public:
   virtual unsigned get_nb_buckets(const Game *game, int round) = 0;
   virtual int map_hand_to_bucket(card_c hand, card_c board, int round) = 0;
 };
@@ -26,11 +26,11 @@ class NullCardAbstraction : public CardAbstraction {
   const Game *game;
   std::vector<unsigned> nb_buckets;
 
-public:
+ public:
   NullCardAbstraction(const Game *game, string param)
-      : game(game), deck_size(game->numSuits * game->numRanks),
+      : game(game),
+        deck_size(game->numSuits * game->numRanks),
         nb_buckets(game->numRounds) {
-
     nb_buckets[0] = 1;
     for (int i = 0; i < game->numHoleCards; ++i) {
       nb_buckets[0] *= deck_size;
@@ -71,7 +71,7 @@ public:
 };
 
 class BlindCardAbstraction : public CardAbstraction {
-public:
+ public:
   BlindCardAbstraction(const Game *game, string param) {}
   virtual unsigned get_nb_buckets(const Game *game, int round) { return 1; }
   virtual int map_hand_to_bucket(card_c hand, card_c board, int round) {
@@ -87,10 +87,10 @@ class ClusterCardAbstraction : public CardAbstraction {
   std::vector<ecalc::ECalc *> calc;
   hand_indexer_t indexer[4];
 
-public:
+ public:
   int_c nb_buckets;
   std::vector<std::vector<unsigned>> buckets;
-  
+
   ClusterCardAbstraction() {}
 
   ClusterCardAbstraction(const Game *game, string param) {
@@ -100,10 +100,14 @@ public:
   void init(int nb_rounds, string load_from) {
     this->nb_buckets = int_c(nb_rounds);
     this->buckets = std::vector<std::vector<unsigned>>(nb_rounds);
-    assert(hand_indexer_init(1, (uint8_t[]) {2}, &indexer[0]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 3}, &indexer[1]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 4}, &indexer[2]));
-    assert(hand_indexer_init(2, (uint8_t[]) {2, 5}, &indexer[3]));
+    uint8_t num_cards1[1] = {2};
+    assert(hand_indexer_init(1, num_cards1, &indexer[0]));
+    uint8_t num_cards2[2] = {2, 3};
+    assert(hand_indexer_init(2, num_cards2, &indexer[1]));
+    uint8_t num_cards3[2] = {2, 4};
+    assert(hand_indexer_init(2, num_cards3, &indexer[2]));
+    uint8_t num_cards4[2] = {2, 5};
+    assert(hand_indexer_init(2, num_cards4, &indexer[3]));
 
     std::ifstream file(load_from.c_str(), std::ios::in | std::ios::binary);
 
@@ -129,10 +133,8 @@ public:
 
   virtual int map_hand_to_bucket(card_c hand, card_c board, int round) {
     uint8_t cards[7];
-    for (unsigned i = 0; i < hand.size(); ++i)
-      cards[i] = hand[i];
-    for (unsigned i = 2; i < board.size() + 2; ++i)
-      cards[i] = board[i - 2];
+    for (unsigned i = 0; i < hand.size(); ++i) cards[i] = hand[i];
+    for (unsigned i = 2; i < board.size() + 2; ++i) cards[i] = board[i - 2];
 
     hand_index_t index = hand_index_last(&indexer[round], cards);
     return buckets[round][index];

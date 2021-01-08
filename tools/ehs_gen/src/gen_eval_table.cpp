@@ -24,10 +24,14 @@ hand_indexer_t indexer[4];
 
 int main(int argc, char **argv) {
 
-  assert(hand_indexer_init(1, (uint8_t[]) {2}, &indexer[0]));
-  assert(hand_indexer_init(2, (uint8_t[]) {2, 3}, &indexer[1]));
-  assert(hand_indexer_init(2, (uint8_t[]) {2, 4}, &indexer[2]));
-  assert(hand_indexer_init(2, (uint8_t[]) {2, 5}, &indexer[3]));
+    uint8_t num_cards1[1] = {2};
+    assert(hand_indexer_init(1, num_cards1, &indexer[0]));
+    uint8_t num_cards2[2] = {2, 3};
+    assert(hand_indexer_init(2, num_cards2, &indexer[1]));
+    uint8_t num_cards3[2] = {2, 4};
+    assert(hand_indexer_init(2, num_cards3, &indexer[2]));
+    uint8_t num_cards4[2] = {2, 5};
+    assert(hand_indexer_init(2, num_cards4, &indexer[3]));
 
   nbgen rng(options.seed);
 
