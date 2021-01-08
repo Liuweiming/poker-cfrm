@@ -1,118 +1,11 @@
 nohup: ignoring input
-number of buckets per round set to: 169,5000,5000,5000
-number of history-points per round set to: 50,50,50,8
+number of buckets per round set to: 169,10000,50000,5000
+number of history-points per round set to: 10,10,10,10
 number of hist-samples-per-round per round set to: 100,2652,52,2652
-initializing rng with seed: 1608796130
+initializing rng with seed: 1610066730
 loading handranks from: ./handranks.dat
 loading ehslookup from: ./ehs.dat
 computing abstraction using SUIT-ISOMORPH EMD EMD OCHS metric.
 round 0 eval and clustering took: 0 sec.
 evaluating round 1 holdings.
-0%62%100%
-clustering 1286792 holdings into 5000 buckets...
-#1 elements changed: 1285955 -> 99.934955%
-#2 elements changed: 1285965 -> 99.935732%
-#3 elements changed: 0 -> 0.000000%
-writing abstraction for round to file...
-done.
-round 1 eval and clustering took: 28096 sec.
-evaluating round 2 holdings.
-0%5%11%17%22%28%34%40%45%51%57%63%68%74%80%85%91%97%100%
-clustering 13960050 holdings into 5000 buckets...
-#1 elements changed: 13476993 -> 96.539719%
-#2 elements changed: 13476891 -> 96.538988%
-#3 elements changed: 0 -> 0.000000%
-writing abstraction for round to file...
-done.
-round 2 eval and clustering took: 233641 sec.
-evaluating round 3 holdings.
-generating 8 opponent clusters
-#1 elements changed: 158 -> 93.491124%
-#2 elements changed: 19 -> 11.242604%
-#3 elements changed: 11 -> 6.508876%
-#4 elements changed: 9 -> 5.325444%
-#5 elements changed: 8 -> 4.733728%
-#6 elements changed: 13 -> 7.692308%
-#7 elements changed: 10 -> 5.917160%
-#8 elements changed: 5 -> 2.958580%
-#9 elements changed: 7 -> 4.142012%
-#10 elements changed: 4 -> 2.366864%
-#11 elements changed: 1 -> 0.591716%
-#12 elements changed: 0 -> 0.000000%
-opp cluster 0: 18
-content:
-6d5h, 7d5h, 7d6h, 8d5h, 9d2h, 9d4h, 9d5h, Td2h, Td3h, 5d3d, 5d4d, 6d3d, 6d4d, 7d3d, 7d4d, 8d2d, 8d3d, 9d2d, 
-opp cluster 1: 5
-content:
-ThTd, JhJd, QhQd, KhKd, AhAd, 
-opp cluster 2: 6
-content:
-3h2d, 4d2h, 5d2h, 6d2h, 7d2h, 3d2d, 
-opp cluster 3: 37
-content:
-2h2d, 3h3d, 9d8h, Td8h, Td9h, Jd7h, Jd8h, Jd9h, Qd3h, Qd4h, Qd5h, Qd6h, Qd7h, Qd8h, Kd2h, Kd3h, Kd4h, 9d7d, 9d8d, Td6d, Td7d, Td8d, Td9d, Jd3d, Jd4d, Jd5d, Jd6d, Jd7d, Jd8d, Qd2d, Qd3d, Qd4d, Qd5d, Qd6d, Qd7d, Kd2d, Kd3d, 
-opp cluster 4: 37
-content:
-4h4d, 5h5d, JdTh, Qd9h, QdTh, QdJh, Kd5h, Kd6h, Kd7h, Kd8h, Kd9h, KdTh, KdJh, Ad2h, Ad3h, Ad4h, Ad5h, Ad6h, Ad7h, Ad8h, Ad9h, Jd9d, JdTd, Qd8d, Qd9d, QdTd, QdJd, Kd4d, Kd5d, Kd6d, Kd7d, Kd8d, Kd9d, Ad2d, Ad3d, Ad4d, Ad6d, 
-opp cluster 5: 16
-content:
-4d3h, 5d3h, 5d4h, 6d3h, 6d4h, 7d3h, 7d4h, 8d2h, 8d3h, 8d4h, 9d3h, 4d2d, 4d3d, 5d2d, 6d2d, 7d2d, 
-opp cluster 6: 30
-content:
-8d6h, 8d7h, 9d6h, 9d7h, Td4h, Td5h, Td6h, Td7h, Jd2h, Jd3h, Jd4h, Jd5h, Jd6h, Qd2h, 6d5d, 7d5d, 7d6d, 8d4d, 8d5d, 8d6d, 8d7d, 9d3d, 9d4d, 9d5d, 9d6d, Td2d, Td3d, Td4d, Td5d, Jd2d, 
-opp cluster 7: 20
-content:
-6h6d, 7h7d, 8h8d, 9h9d, KdQh, AdTh, AdJh, AdQh, AdKh, KdTd, KdJd, KdQd, Ad5d, Ad7d, Ad8d, Ad9d, AdTd, AdJd, AdQd, AdKd, 
-0%0%1%1%2%3%3%4%5%5%6%7%7%8%9%9%10%11%11%12%12%13%14%14%15%16%16%17%18%18%19%20%20%21%22%22%23%24%24%25%25%26%27%27%28%29%29%30%31%31%32%33%33%34%35%35%36%37%37%38%38%39%40%40%41%42%42%43%44%44%45%46%46%47%48%48%49%50%50%51%51%52%53%53%54%55%55%56%57%57%58%59%59%60%61%61%62%63%63%64%64%65%66%66%67%68%68%69%70%70%71%72%72%73%74%74%75%76%76%77%77%78%79%79%80%81%81%82%83%83%84%85%85%86%87%87%88%88%89%90%90%91%92%92%93%94%94%95%96%96%97%98%98%99%100%
-clustering 123156254 holdings into 5000 buckets...
-#1 elements changed: 92854082 -> 75.395345%
-#2 elements changed: 24226061 -> 19.670995%
-#3 elements changed: 14044670 -> 11.403944%
-#4 elements changed: 11748285 -> 9.539333%
-#5 elements changed: 9815313 -> 7.969805%
-#6 elements changed: 8522333 -> 6.919935%
-#7 elements changed: 7594387 -> 6.166465%
-#8 elements changed: 5419150 -> 4.400223%
-#9 elements changed: 6437672 -> 5.227239%
-#10 elements changed: 5981919 -> 4.857178%
-#11 elements changed: 5598817 -> 4.546109%
-#12 elements changed: 3766739 -> 3.058504%
-#13 elements changed: 5042038 -> 4.094017%
-#14 elements changed: 4829406 -> 3.921365%
-#15 elements changed: 3086091 -> 2.505834%
-#16 elements changed: 2935059 -> 2.383199%
-#17 elements changed: 4339214 -> 3.523340%
-#18 elements changed: 4198119 -> 3.408775%
-#19 elements changed: 4088488 -> 3.319757%
-#20 elements changed: 2397949 -> 1.947079%
-#21 elements changed: 3853263 -> 3.128760%
-#22 elements changed: 2203560 -> 1.789239%
-#23 elements changed: 3683708 -> 2.991085%
-#24 elements changed: 2030707 -> 1.648887%
-#25 elements changed: 3520953 -> 2.858932%
-#26 elements changed: 1888795 -> 1.533657%
-#27 elements changed: 3399373 -> 2.760211%
-#28 elements changed: 3326606 -> 2.701126%
-#29 elements changed: 1724683 -> 1.400402%
-#30 elements changed: 1662686 -> 1.350062%
-#31 elements changed: 3176789 -> 2.579478%
-#32 elements changed: 3114707 -> 2.529069%
-#33 elements changed: 1534319 -> 1.245831%
-#34 elements changed: 1492554 -> 1.211919%
-#35 elements changed: 3014375 -> 2.447602%
-#36 elements changed: 2987495 -> 2.425776%
-#37 elements changed: 1406732 -> 1.142234%
-#38 elements changed: 1403161 -> 1.139334%
-#39 elements changed: 2922509 -> 2.373009%
-#40 elements changed: 1347664 -> 1.094272%
-#41 elements changed: 1313688 -> 1.066684%
-#42 elements changed: 2861863 -> 2.323766%
-#43 elements changed: 2837635 -> 2.304093%
-#44 elements changed: 1238169 -> 1.005364%
-#45 elements changed: 2790004 -> 2.265418%
-#46 elements changed: 2776531 -> 2.254478%
-#47 elements changed: 1189366 -> 0.965737%
-done.
-round 3 eval and clustering took: 10270 sec.
-saved abstraction to ./neeo_cluster.card_abs
-saving round cluster centers to ./neeo_cluster.card_abs..center
+0%
