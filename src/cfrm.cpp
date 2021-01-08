@@ -1,11 +1,13 @@
+#include <assert.h>
 #include "cfrm.hpp"
 #include "definitions.hpp"
 #include "functions.hpp"
 
 CFRM::CFRM(AbstractGame *game, char *strat_dump_file) : game(game) {
   std::ifstream file(strat_dump_file, std::ios::in | std::ios::binary);
-  size_t nb_infosets;
+  size_t nb_infosets = game->get_nb_infosets();
   file.read(reinterpret_cast<char *>(&nb_infosets), sizeof(nb_infosets));
+  assert(nb_infosets == game->get_nb_infosets());
 
   regrets = entry_c(nb_infosets);
   for (size_t i = 0; i < nb_infosets; ++i) {
