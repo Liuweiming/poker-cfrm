@@ -1,4 +1,5 @@
 #include "cfrm.hpp"
+#include "definitions.hpp"
 #include "functions.hpp"
 
 CFRM::CFRM(AbstractGame *game, char *strat_dump_file) : game(game) {
@@ -8,28 +9,34 @@ CFRM::CFRM(AbstractGame *game, char *strat_dump_file) : game(game) {
 
   regrets = entry_c(nb_infosets);
   for (size_t i = 0; i < nb_infosets; ++i) {
-    entry_t entry;
+    entry_t &entry = regrets[i];
     file.read(reinterpret_cast<char *>(&entry.nb_buckets),
               sizeof(entry.nb_buckets));
     file.read(reinterpret_cast<char *>(&entry.nb_entries),
               sizeof(entry.nb_entries));
-    entry.entries = vector<double>(entry.nb_buckets * entry.nb_entries);
-    file.read(reinterpret_cast<char *>(&entry.entries[0]),
-              sizeof(entry.entries[0]) * entry.entries.size());
-    regrets[i] = entry;
+    entry.init(entry.nb_buckets, entry.nb_entries);
+    std::vector<double> buff(entry.nb_buckets * entry.nb_entries);
+    file.read(reinterpret_cast<char *>(&buff[0]),
+              sizeof(buff[0]) * buff.size());
+    for (size_t j = 0; j != buff.size(); ++j) {
+      entry[j] = buff[j];
+    }
   }
 
   avg_strategy = entry_c(nb_infosets);
   for (size_t i = 0; i < nb_infosets; ++i) {
-    entry_t entry;
+    entry_t &entry = avg_strategy[i];
     file.read(reinterpret_cast<char *>(&entry.nb_buckets),
               sizeof(entry.nb_buckets));
     file.read(reinterpret_cast<char *>(&entry.nb_entries),
               sizeof(entry.nb_entries));
-    entry.entries = vector<double>(entry.nb_buckets * entry.nb_entries);
-    file.read(reinterpret_cast<char *>(&entry.entries[0]),
-              sizeof(entry.entries[0]) * entry.entries.size());
-    avg_strategy[i] = entry;
+    entry.init(entry.nb_buckets, entry.nb_entries);
+    std::vector<double> buff(entry.nb_buckets * entry.nb_entries);
+    file.read(reinterpret_cast<char *>(&buff[0]),
+              sizeof(buff[0]) * buff.size());
+    for (size_t j = 0; j != buff.size(); ++j) {
+      entry[j] = buff[j];
+    }
   }
 }
 
@@ -256,7 +263,7 @@ void CFRM::print_strategy_r(unsigned player, INode *curr_node,
 }
 
 std::vector<double> CFRM::get_strategy(uint64_t info_idx, int bucket) {
-  entry_t reg = regrets[info_idx];
+  entry_t &reg = regrets[info_idx];
   unsigned nb_children = reg.nb_entries;
   std::vector<double> strategy(nb_children);
   double psum = 0;
@@ -287,7 +294,7 @@ int CFRM::sample_strategy(std::vector<double> strategy, nbgen &rng) {
 }
 
 vector<double> CFRM::get_normalized_avg_strategy(uint64_t idx, int bucket) {
-  entry_t avg = avg_strategy[idx];
+  entry_t &avg = avg_strategy[idx];
   unsigned nb_choices = avg.nb_entries;
   vector<double> strategy(nb_choices);
   double sum = 0;
@@ -589,17 +596,24 @@ void CFRM::dump(char *filename) {
              sizeof(regrets[i].nb_buckets));
     fs.write(reinterpret_cast<const char *>(&regrets[i].nb_entries),
              sizeof(regrets[i].nb_entries));
-    fs.write(reinterpret_cast<const char *>(&regrets[i].entries[0]),
-             sizeof(regrets[i].entries[0]) * (regrets[i].entries.size()));
+    std::vector<double> buff(regrets[i].size());
+    for (size_t j = 0; j != buff.size(); ++j) {
+      buff[j] = regrets[i][j];
+    }
+    fs.write(reinterpret_cast<const char *>(&buff[0]),
+             sizeof(buff[0]) * (buff.size()));
   }
   for (unsigned i = 0; i < nb_infosets; ++i) {
     fs.write(reinterpret_cast<const char *>(&avg_strategy[i].nb_buckets),
              sizeof(avg_strategy[i].nb_buckets));
     fs.write(reinterpret_cast<const char *>(&avg_strategy[i].nb_entries),
              sizeof(avg_strategy[i].nb_entries));
-    fs.write(
-        reinterpret_cast<const char *>(&avg_strategy[i].entries[0]),
-        sizeof(avg_strategy[i].entries[0]) * (avg_strategy[i].entries.size()));
+    std::vector<double> buff(avg_strategy[i].size());
+    for (size_t j = 0; j != buff.size(); ++j) {
+      buff[j] = avg_strategy[i][j];
+    }
+    fs.write(reinterpret_cast<const char *>(&buff[0]),
+             sizeof(buff[0]) * (buff.size()));
   }
   fs.close();
 }
@@ -639,7 +653,7 @@ double ExternalSamplingCFR::train(int trainplayer, hand_t hand,
         ev += utils[i] * strategy[i];
       }
 
-      entry_t reg = regrets[info_idx];
+      entry_t &reg = regrets[info_idx];
       for (unsigned i = 0; i < strategy.size(); ++i) {
         regrets[info_idx][bucket * reg.nb_entries + i] += utils[i] - ev;
       }
@@ -648,7 +662,7 @@ double ExternalSamplingCFR::train(int trainplayer, hand_t hand,
     } else {
       auto strategy = get_strategy(info_idx, bucket);
       int action = sample_strategy(strategy, rng);
-      entry_t avg = avg_strategy[info_idx];
+      entry_t &avg = avg_strategy[info_idx];
       for (unsigned i = 0; i < strategy.size(); ++i)
         avg_strategy[info_idx][bucket * avg.nb_entries + i] += strategy[i];
       return train(trainplayer, hand, node->get_children()[action], p, op, rng);
@@ -681,7 +695,7 @@ double ChanceSamplingCFR::train(int trainplayer, hand_t hand, INode *curr_node,
     if (node->get_player() == trainplayer) {
       auto strategy = get_strategy(node->get_idx(), bucket);
 
-      entry_t avg = avg_strategy[info_idx];
+      entry_t &avg = avg_strategy[info_idx];
       for (unsigned i = 0; i < strategy.size(); ++i)
         avg_strategy[info_idx][bucket * avg.nb_entries + i] += p * strategy[i];
 
@@ -694,7 +708,7 @@ double ChanceSamplingCFR::train(int trainplayer, hand_t hand, INode *curr_node,
         ev += utils[i] * strategy[i];
       }
 
-      entry_t reg = regrets[info_idx];
+      entry_t &reg = regrets[info_idx];
       for (unsigned i = 0; i < strategy.size(); ++i) {
         regrets[info_idx][bucket * reg.nb_entries + i] += utils[i] - ev;
       }
@@ -743,7 +757,7 @@ vector<double> OutcomeSamplingCFR::train(hand_t hand, INode *curr_node,
 
     auto strategy = get_strategy(node->get_idx(), bucket);
 
-    entry_t avg = avg_strategy[info_idx];
+    entry_t &avg = avg_strategy[info_idx];
     for (unsigned i = 0; i < strategy.size(); ++i)
       avg_strategy[info_idx][bucket * avg.nb_entries + i] +=
           (reach[node->get_player()] * strategy[i]) / sp;
@@ -764,13 +778,13 @@ vector<double> OutcomeSamplingCFR::train(hand_t hand, INode *curr_node,
     auto ev =
         train(hand, node->get_children()[sampled_action], reach, sp * csp, rng);
 
-    entry_t reg = regrets[info_idx];
+    entry_t &reg = regrets[info_idx];
     regrets[info_idx][bucket * reg.nb_entries + sampled_action] +=
         ev[node->get_player()];
     ev[node->get_player()] *= strategy[sampled_action];
 
     for (unsigned i = 0; i < strategy.size(); ++i) {
-      regrets[info_idx][bucket * reg.nb_entries + i] -= ev[node->get_player()];
+      regrets[info_idx][bucket * reg.nb_entries + i] += -ev[node->get_player()];
     }
 
     return ev;
