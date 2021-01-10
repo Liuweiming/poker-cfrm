@@ -242,7 +242,7 @@ public:
               // build histogramm
               unsigned turn_num = missing_c == 2 ? 52 : 1;
               unsigned river_num = 52;
-              nb_hist_samples = 0;
+              unsigned nb_samples = 0;
               // give out rest of boardcards
               for (unsigned c1 = 0; c1 < turn_num; ++c1) {
                 std::bitset<52> sdeck = deck;
@@ -288,7 +288,7 @@ public:
                   // nb_samples[round])[0]
                   //.pwin_tie();
                   ++features[i].histogram[prob_to_bucket(equity, round)];
-                  ++nb_hist_samples;
+                  ++nb_samples;
                   
                   sdeck[c2] = 1;
                   sboard.pop_back();
@@ -296,7 +296,7 @@ public:
               }
 
               for (unsigned j = 0; j < features[i].histogram.size(); ++j) {
-                features[i].histogram[j] /= nb_hist_samples;
+                features[i].histogram[j] /= nb_samples;
               }
             }
           });
@@ -325,8 +325,7 @@ public:
     dump_to->write(reinterpret_cast<const char *>(&nb_buckets[round]),
                    sizeof(nb_buckets[round]));
 
-    size_t nb_entries = ehslp->size(round);
-    for (size_t i = 0; i < nb_entries; ++i) {
+    for (size_t i = 0; i < features.size(); ++i) {
       // std::cout << features[i].cluster << "" << std::endl;
       dump_to->write(reinterpret_cast<const char *>(&features[i].cluster),
                      sizeof(features[i].cluster));
