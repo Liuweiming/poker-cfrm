@@ -16,7 +16,7 @@ int parse_options(int argc, char **argv);
 struct {
   string load_from = "";
   string save_to = "";
-  string handranks_path = "/usr/local/freedom/data/handranks.dat";
+  string handranks_path = "./handranks.dat";
   int nb_threads = 1;
   size_t seed = time(NULL);
 
