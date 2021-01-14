@@ -24,7 +24,7 @@ struct {
   unsigned nb_buckets = 5;
   unsigned nb_samples = 100;
   int potential_round = -1;
-  double err_bound = 0.05;
+  double err_bound = 0.01;
 } options;
 
 hand_indexer_t indexer[4];
@@ -164,45 +164,48 @@ int main(int argc, char **argv) {
                                   rng);
   std::vector<std::vector<precision_t>> cost_mat;
   gen_cost_matrix(nb_features_pr, nb_features_pr, cost_mat);
-  kmeans(options.nb_buckets, dataset, emd_forwarder, center, options.nb_threads,
-         options.err_bound, &cost_mat);
+  for (int kmeans_iter = 0; kmeans_iter != 10; ++kmeans_iter){
+    double err_bound = options.err_bound * (10 - kmeans_iter);
+    kmeans(options.nb_buckets, dataset, emd_forwarder, center, options.nb_threads,
+          err_bound, &cost_mat);
 
-    for (unsigned j = 0; j < options.nb_buckets; ++j) {
-      cout << "histogram center " << j << ": ";
-      for (unsigned f = 0; f < nb_features_pr; ++f) {
-        cout << center[j][f] << " ";
-      }
-      cout << "" << std::endl;;
-    }
+      // for (unsigned j = 0; j < options.nb_buckets; ++j) {
+      //   cout << "histogram center " << j << ": ";
+      //   for (unsigned f = 0; f < nb_features_pr; ++f) {
+      //     cout << center[j][f] << " ";
+      //   }
+      //   cout << "" << std::endl;;
+      // }
 
-  cout << "done.\n dumping new abstraction to " << options.save_to << "" << std::endl;;
+    cout << "done.\n dumping new abstraction to " << options.save_to + std::to_string(kmeans_iter) << "" << std::endl;;
 
-  std::ofstream dump_to(options.save_to, std::ios::out | std::ios::binary);
-  for (int i = 0; i < 4; ++i) {
-      cout << "dumping round " << i << "" << std::endl;;
-      if (i == options.potential_round) {
+    std::ofstream dump_to(options.save_to + std::to_string(kmeans_iter), std::ios::out | std::ios::binary);
+    for (int i = 0; i < 4; ++i) {
+        cout << "dumping round " << i << "" << std::endl;;
+        if (i == options.potential_round) {
+          dump_to.write(reinterpret_cast<const char *>(&i), sizeof(i));
+        dump_to.write(reinterpret_cast<const char *>(&options.nb_buckets),
+                      sizeof(options.nb_buckets));
+
+        size_t nb_entries = indexer[i].round_size[i == 0 ? 0 : 1];
+        for (size_t r = 0; r < nb_entries; ++r) {
+          dump_to.write(reinterpret_cast<const char *>(&dataset[r].cluster),
+                        sizeof(dataset[r].cluster));
+        }
+      } else {
         dump_to.write(reinterpret_cast<const char *>(&i), sizeof(i));
-      dump_to.write(reinterpret_cast<const char *>(&options.nb_buckets),
-                     sizeof(options.nb_buckets));
+        dump_to.write(reinterpret_cast<const char *>(&absgen.nb_buckets[i]),
+                      sizeof(absgen.nb_buckets[i]));
 
-      size_t nb_entries = indexer[i].round_size[i == 0 ? 0 : 1];
-      for (size_t r = 0; r < nb_entries; ++r) {
-        dump_to.write(reinterpret_cast<const char *>(&dataset[r].cluster),
-                      sizeof(dataset[r].cluster));
-      }
-    } else {
-      dump_to.write(reinterpret_cast<const char *>(&i), sizeof(i));
-      dump_to.write(reinterpret_cast<const char *>(&absgen.nb_buckets[i]),
-                     sizeof(absgen.nb_buckets[i]));
-
-      size_t nb_entries = indexer[i].round_size[i == 0 ? 0 : 1];
-      for (size_t r = 0; r < nb_entries; ++r) {
-        dump_to.write(reinterpret_cast<const char *>(&absgen.buckets[i][r]),
-                       sizeof(absgen.buckets[i][r]));
+        size_t nb_entries = indexer[i].round_size[i == 0 ? 0 : 1];
+        for (size_t r = 0; r < nb_entries; ++r) {
+          dump_to.write(reinterpret_cast<const char *>(&absgen.buckets[i][r]),
+                        sizeof(absgen.buckets[i][r]));
+        }
       }
     }
+    dump_to.close();
   }
-  dump_to.close();
 
   cout << "finished. exiting." << std::endl;;
 
