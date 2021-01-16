@@ -24,14 +24,14 @@ struct {
   unsigned nb_buckets = 5;
   unsigned nb_samples = 100;
   int potential_round = -1;
+  string potential_from = "";
   double err_bound = 0.01;
 } options;
 
 hand_indexer_t indexer[4];
 
 int main(int argc, char **argv) {
-  if (parse_options(argc, argv) == 1)
-    return 1;
+  if (parse_options(argc, argv) == 1) return 1;
 
   if (options.load_from == "" || options.potential_round == -1) {
     printf(
@@ -39,64 +39,105 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-    uint8_t num_cards1[1] = {2};
-    assert(hand_indexer_init(1, num_cards1, &indexer[0]));
-    uint8_t num_cards2[2] = {2, 3};
-    assert(hand_indexer_init(2, num_cards2, &indexer[1]));
-    uint8_t num_cards3[2] = {2, 4};
-    assert(hand_indexer_init(2, num_cards3, &indexer[2]));
-    uint8_t num_cards4[2] = {2, 5};
-    assert(hand_indexer_init(2, num_cards4, &indexer[3]));
+  uint8_t num_cards1[1] = {2};
+  assert(hand_indexer_init(1, num_cards1, &indexer[0]));
+  uint8_t num_cards2[2] = {2, 3};
+  assert(hand_indexer_init(2, num_cards2, &indexer[1]));
+  uint8_t num_cards3[2] = {2, 4};
+  assert(hand_indexer_init(2, num_cards3, &indexer[2]));
+  uint8_t num_cards4[2] = {2, 5};
+  assert(hand_indexer_init(2, num_cards4, &indexer[3]));
 
-  cout << "Potentialround set to " << options.potential_round << "" << std::endl;;
-  cout << "initializing rng with seed: " << options.seed << "" << std::endl;;
+  cout << "Potentialround set to " << options.potential_round << ""
+       << std::endl;
+  ;
+  cout << "initializing rng with seed: " << options.seed << "" << std::endl;
+  ;
   nbgen rng(options.seed);
 
   ClusterCardAbstraction absgen;
-  cout << "loading: " << options.load_from << "" << std::endl;;
+  cout << "loading: " << options.load_from << "" << std::endl;
+  ;
   absgen.init(4, options.load_from);
+  if (options.potential_from.length()) {
+    ClusterCardAbstraction potential;
+    cout << "loading potential: " << options.potential_from << "" << std::endl;
+    ;
+    potential.init(4, options.potential_from);
+    std::ofstream dump_to(options.save_to, std::ios::out | std::ios::binary);
+    for (int i = 0; i < 4; ++i) {
+      cout << "dumping round " << i << "" << std::endl;
+      ;
+      if (i == options.potential_round) {
+        dump_to.write(reinterpret_cast<const char *>(&i), sizeof(i));
+        dump_to.write(reinterpret_cast<const char *>(&potential.nb_buckets[i]),
+                      sizeof(potential.nb_buckets[i]));
+
+        size_t nb_entries = indexer[i].round_size[i == 0 ? 0 : 1];
+        for (size_t r = 0; r < nb_entries; ++r) {
+          dump_to.write(
+              reinterpret_cast<const char *>(&potential.buckets[i][r]),
+              sizeof(potential.buckets[i][r]));
+        }
+      } else {
+        dump_to.write(reinterpret_cast<const char *>(&i), sizeof(i));
+        dump_to.write(reinterpret_cast<const char *>(&absgen.nb_buckets[i]),
+                      sizeof(absgen.nb_buckets[i]));
+
+        size_t nb_entries = indexer[i].round_size[i == 0 ? 0 : 1];
+        for (size_t r = 0; r < nb_entries; ++r) {
+          dump_to.write(reinterpret_cast<const char *>(&absgen.buckets[i][r]),
+                        sizeof(absgen.buckets[i][r]));
+        }
+      }
+    }
+    dump_to.close();
+    cout << "finished. exiting." << std::endl;
+    return 0;
+  }
 
   unsigned round;
   unsigned nb_rounds = 4;
-  //cout << "loading centers from: " << options.load_from << "" << std::endl;;
-  //std::string centerpath = options.load_from + ".center";
-  //std::ifstream file(centerpath, std::ios::in | std::ios::binary);
+  // cout << "loading centers from: " << options.load_from << "" << std::endl;;
+  // std::string centerpath = options.load_from + ".center";
+  // std::ifstream file(centerpath, std::ios::in | std::ios::binary);
 
-  //std::vector<histogram_c> centers(nb_rounds);
+  // std::vector<histogram_c> centers(nb_rounds);
 
-  //for (size_t i = 0; i < nb_rounds; ++i) {
-    //file.read(reinterpret_cast<char *>(&round), sizeof(round));
-    //file.read(reinterpret_cast<char *>(&nb_centers), sizeof(nb_centers));
-    //file.read(reinterpret_cast<char *>(&nb_features), sizeof(nb_features));
-    //centers[i] = histogram_c(nb_centers);
-    //std::cout << "round " << i << " centers with " << nb_centers
-              //<< " centers and " << nb_features << " features each:" << std::endl;;
-    //for (unsigned j = 0; j < nb_centers; ++j) {
-      //centers[i][j] = histogram_t(nb_features);
-      //cout << "histogram center " << j << ": ";
-      //for (unsigned f = 0; f < nb_features; ++f) {
-        //file.read(reinterpret_cast<char *>(&centers[i][j][f]),
-                  //sizeof(centers[i][j][f]));
-        //cout << centers[i][j][f] << " ";
-      //}
-      //cout << "" << std::endl;;
-    //}
+  // for (size_t i = 0; i < nb_rounds; ++i) {
+  // file.read(reinterpret_cast<char *>(&round), sizeof(round));
+  // file.read(reinterpret_cast<char *>(&nb_centers), sizeof(nb_centers));
+  // file.read(reinterpret_cast<char *>(&nb_features), sizeof(nb_features));
+  // centers[i] = histogram_c(nb_centers);
+  // std::cout << "round " << i << " centers with " << nb_centers
+  //<< " centers and " << nb_features << " features each:" << std::endl;;
+  // for (unsigned j = 0; j < nb_centers; ++j) {
+  // centers[i][j] = histogram_t(nb_features);
+  // cout << "histogram center " << j << ": ";
+  // for (unsigned f = 0; f < nb_features; ++f) {
+  // file.read(reinterpret_cast<char *>(&centers[i][j][f]),
+  // sizeof(centers[i][j][f]));
+  // cout << centers[i][j][f] << " ";
+  //}
+  // cout << "" << std::endl;;
+  //}
   //}
 
   int_c board_card_sum{0, 3, 4, 5};
   int cards_missing = board_card_sum[options.potential_round + 1] -
                       board_card_sum[options.potential_round];
-  cout << "additional number of cards to deal: " << cards_missing << "" << std::endl;;
-
-  unsigned nb_features_pr = absgen.nb_buckets[options.potential_round+1];
-  cout << "number of features per hand in potential round: " << nb_features_pr << "" << std::endl;;
+  cout << "additional number of cards to deal: " << cards_missing << ""
+       << std::endl;
+  unsigned nb_features_pr = absgen.nb_buckets[options.potential_round + 1];
+  cout << "number of features per hand in potential round: " << nb_features_pr
+       << "" << std::endl;
 
   dataset_t dataset(indexer[options.potential_round].round_size[1]);
 
   cout << "generating round " << options.potential_round
        << " histograms for transitions to round " << options.potential_round + 1
-       << "" << std::endl;;
-  cout << "nb hands to eval: " << dataset.size() << "" << std::endl;;
+       << "" << std::endl;
+  cout << "nb hands to eval: " << dataset.size() << "" << std::endl;
 
   round = options.potential_round;
 
@@ -110,7 +151,8 @@ int main(int argc, char **argv) {
   for (int t = 0; t < options.nb_threads; ++t) {
     accumulator += thread_block_size[t];
     eval_threads[t] = std::thread([t, round, accumulator, &dataset,
-                                   &board_card_sum, &thread_block_size,&nb_features_pr,&cards_missing,&absgen] {
+                                   &board_card_sum, &thread_block_size,
+                                   &nb_features_pr, &cards_missing, &absgen] {
       uint8_t cards[7];
       for (size_t i = (accumulator - thread_block_size[t]); i < accumulator;
            ++i) {
@@ -144,8 +186,7 @@ int main(int argc, char **argv) {
         }
         // cout << "normalized hist of " << i << ": ";
         for (unsigned f = 0; f < nb_features_pr; ++f) {
-          if (dataset[i].histogram[f] > 0)
-            dataset[i].histogram[f] /= sum;
+          if (dataset[i].histogram[f] > 0) dataset[i].histogram[f] /= sum;
           // cout << dataset[i].histogram[f] << " ";
         }
         // cout << "" << std::endl;;
@@ -153,10 +194,10 @@ int main(int argc, char **argv) {
     });
   }
 
-    for (int t = 0; t < options.nb_threads; ++t)
-      eval_threads[t].join();
+  for (int t = 0; t < options.nb_threads; ++t) eval_threads[t].join();
 
-  std::cout << "clustering next round cluster histograms" << std::endl;;
+  std::cout << "clustering next round cluster histograms" << std::endl;
+  ;
   histogram_c center;
   unsigned restarts = 100;
   kmeans_center_multiple_restarts(restarts, options.nb_buckets,
@@ -164,26 +205,30 @@ int main(int argc, char **argv) {
                                   rng);
   std::vector<std::vector<precision_t>> cost_mat;
   gen_cost_matrix(nb_features_pr, nb_features_pr, cost_mat);
-  for (int kmeans_iter = 0; kmeans_iter != 10; ++kmeans_iter){
+  for (int kmeans_iter = 0; kmeans_iter != 10; ++kmeans_iter) {
     double err_bound = options.err_bound * (10 - kmeans_iter);
-    kmeans(options.nb_buckets, dataset, emd_forwarder, center, options.nb_threads,
-          err_bound, &cost_mat);
+    kmeans(options.nb_buckets, dataset, emd_forwarder, center,
+           options.nb_threads, err_bound, &cost_mat);
 
-      // for (unsigned j = 0; j < options.nb_buckets; ++j) {
-      //   cout << "histogram center " << j << ": ";
-      //   for (unsigned f = 0; f < nb_features_pr; ++f) {
-      //     cout << center[j][f] << " ";
-      //   }
-      //   cout << "" << std::endl;;
-      // }
+    // for (unsigned j = 0; j < options.nb_buckets; ++j) {
+    //   cout << "histogram center " << j << ": ";
+    //   for (unsigned f = 0; f < nb_features_pr; ++f) {
+    //     cout << center[j][f] << " ";
+    //   }
+    //   cout << "" << std::endl;;
+    // }
 
-    cout << "done.\n dumping new abstraction to " << options.save_to + std::to_string(kmeans_iter) << "" << std::endl;;
+    cout << "done.\n dumping new abstraction to "
+         << options.save_to + std::to_string(kmeans_iter) << "" << std::endl;
+    ;
 
-    std::ofstream dump_to(options.save_to + std::to_string(kmeans_iter), std::ios::out | std::ios::binary);
+    std::ofstream dump_to(options.save_to + std::to_string(kmeans_iter),
+                          std::ios::out | std::ios::binary);
     for (int i = 0; i < 4; ++i) {
-        cout << "dumping round " << i << "" << std::endl;;
-        if (i == options.potential_round) {
-          dump_to.write(reinterpret_cast<const char *>(&i), sizeof(i));
+      cout << "dumping round " << i << "" << std::endl;
+      ;
+      if (i == options.potential_round) {
+        dump_to.write(reinterpret_cast<const char *>(&i), sizeof(i));
         dump_to.write(reinterpret_cast<const char *>(&options.nb_buckets),
                       sizeof(options.nb_buckets));
 
@@ -207,7 +252,7 @@ int main(int argc, char **argv) {
     dump_to.close();
   }
 
-  cout << "finished. exiting." << std::endl;;
+  cout << "finished. exiting." << std::endl;
 
   return 0;
 }
@@ -216,13 +261,15 @@ int parse_options(int argc, char **argv) {
   try {
     po::options_description desc("Allowed options");
     desc.add_options()("help,h", "produce help message")(
-        "potrential-round,p", po::value<int>(&options.potential_round),
+        "potential-round,p", po::value<int>(&options.potential_round),
         "sets the round that should be replaced by potential abstraction. ( "
-        "1(flop) or 2(turn) )")("load-from,l",
-                                po::value<string>(&options.load_from),
-                                "load abstraction to modify")(
-        "save-to,s", po::value<string>(&options.save_to),
-        "safe generated abstraction to file.")(
+        "1(flop) or 2(turn) )")("potential-from,f",
+                                po::value<string>(&options.potential_from),
+                                "abstraction to write")(
+        "load-from,l", po::value<string>(&options.load_from),
+        "load abstraction to modify")("save-to,s",
+                                      po::value<string>(&options.save_to),
+                                      "safe generated abstraction to file.")(
         "threads", po::value<int>(&options.nb_threads),
         "set number of threads to use. default: 1")(
         "nb-buckets,b", po::value<unsigned>(&options.nb_buckets),
@@ -237,15 +284,16 @@ int parse_options(int argc, char **argv) {
     po::notify(vm);
 
     if (vm.count("help")) {
-      cout << desc << "" << std::endl;;
+      cout << desc << "" << std::endl;
+      ;
       return 1;
     }
-  }
-  catch (exception &e) {
-    std::cout << e.what() << "" << std::endl;;
-  }
-  catch (...) {
-    std::cout << "unknown error while parsing options." << std::endl;;
+  } catch (exception &e) {
+    std::cout << e.what() << "" << std::endl;
+    ;
+  } catch (...) {
+    std::cout << "unknown error while parsing options." << std::endl;
+    ;
   }
   return 0;
 }
