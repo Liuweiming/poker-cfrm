@@ -123,6 +123,7 @@ class ClusterCardAbstraction : public CardAbstraction {
                   sizeof(buckets[round][j]));
       }
     }
+    // std::cout << "load finished" << std::endl;
   }
 
   ~ClusterCardAbstraction() {}

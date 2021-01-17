@@ -159,7 +159,7 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
             });
         nb_active_threads++;
         if (nb_active_threads >= nb_threads || i == (nb_combinations - 1)) {
-          for (unsigned t = 0; t < nb_threads; ++t) threadpool[t].join();
+          for (unsigned t = 0; t < nb_active_threads; ++t) threadpool[t].join();
           nb_active_threads = 0;
         }
       } else {
