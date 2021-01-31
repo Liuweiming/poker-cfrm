@@ -110,7 +110,10 @@ class ClusterCardAbstraction : public CardAbstraction {
     assert(hand_indexer_init(2, num_cards4, &indexer[3]));
 
     std::ifstream file(load_from.c_str(), std::ios::in | std::ios::binary);
-
+    if (!file.is_open()) {
+      std::cerr << "could not load abstraction from" << load_from << std::endl;
+      exit(-1);
+    }
     int round;
     for (size_t i = 0; i < nb_rounds; ++i) {
       file.read(reinterpret_cast<char *>(&round), sizeof(round));
@@ -121,9 +124,13 @@ class ClusterCardAbstraction : public CardAbstraction {
       for (unsigned j = 0; j < buckets[round].size(); ++j) {
         file.read(reinterpret_cast<char *>(&buckets[round][j]),
                   sizeof(buckets[round][j]));
+        if (!file.good()) {
+          std::cerr << "read abstraction from" << load_from << "error"
+                    << std::endl;
+        }
       }
     }
-    // std::cout << "load finished" << std::endl;
+    std::cout << "load finished" << std::endl;
   }
 
   ~ClusterCardAbstraction() {}

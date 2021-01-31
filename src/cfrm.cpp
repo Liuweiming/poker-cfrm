@@ -1,5 +1,6 @@
-#include <assert.h>
 #include "cfrm.hpp"
+#include <assert.h>
+#include <iostream>
 #include "definitions.hpp"
 #include "functions.hpp"
 
@@ -7,6 +8,10 @@ CFRM::CFRM(AbstractGame *game, char *strat_dump_file) : game(game) {
   std::ifstream file(strat_dump_file, std::ios::in | std::ios::binary);
   size_t nb_infosets = game->get_nb_infosets();
   file.read(reinterpret_cast<char *>(&nb_infosets), sizeof(nb_infosets));
+  if (!file.is_open()) {
+    std::cerr << "could not load strategy from" << strat_dump_file << std::endl;
+    exit(-1);
+  }
   assert(nb_infosets == game->get_nb_infosets());
 
   regrets = entry_c(nb_infosets);
@@ -16,10 +21,19 @@ CFRM::CFRM(AbstractGame *game, char *strat_dump_file) : game(game) {
               sizeof(entry.nb_buckets));
     file.read(reinterpret_cast<char *>(&entry.nb_entries),
               sizeof(entry.nb_entries));
+
+    if (!file.good()) {
+      std::cerr << "read regrets from" << strat_dump_file << "error"
+                << std::endl;
+    }
     entry.init(entry.nb_buckets, entry.nb_entries);
     std::vector<double> buff(entry.nb_buckets * entry.nb_entries);
     file.read(reinterpret_cast<char *>(&buff[0]),
               sizeof(buff[0]) * buff.size());
+    if (!file.good()) {
+      std::cerr << "read regrets from" << strat_dump_file << "error"
+                << std::endl;
+    }
     for (size_t j = 0; j != buff.size(); ++j) {
       entry[j] = buff[j];
     }
@@ -32,10 +46,18 @@ CFRM::CFRM(AbstractGame *game, char *strat_dump_file) : game(game) {
               sizeof(entry.nb_buckets));
     file.read(reinterpret_cast<char *>(&entry.nb_entries),
               sizeof(entry.nb_entries));
+    if (!file.good()) {
+      std::cerr << "read strategy from" << strat_dump_file << "error"
+                << std::endl;
+    }
     entry.init(entry.nb_buckets, entry.nb_entries);
     std::vector<double> buff(entry.nb_buckets * entry.nb_entries);
     file.read(reinterpret_cast<char *>(&buff[0]),
               sizeof(buff[0]) * buff.size());
+    if (!file.good()) {
+      std::cerr << "read strategy from" << strat_dump_file << "error"
+                << std::endl;
+    }
     for (size_t j = 0; j != buff.size(); ++j) {
       entry[j] = buff[j];
     }
