@@ -52,6 +52,12 @@
                 turn),                                                         \
          river)
 
+
+// set board. not existing cards should be 0
+#define CREATE_FHP_BOARD(flop1, flop2, flop3)                         \
+  SET_C4(SET_C3(SET_C2(static_cast<bitset>(0), flop1), flop2),   \
+                       flop3)
+
 #define CREATE_HAND(c0, c1) SET_C1(SET_C0(static_cast<combination>(0), c0), c1)
 
 #define LOOKUP_HAND(HR, c)                                                     \
@@ -61,5 +67,11 @@
                     GET_C4(c)] +                                               \
               GET_C5(c)] +                                                     \
         GET_C6(c)];
+
+#define LOOKUP_FHP_HAND(HR, c)                                                     \
+  (*HR)[(*HR)[(*HR)[(*HR)[(*HR)[53 + GET_C0(c)] + GET_C1(c)] +     \
+                                GET_C2(c)] +                                   \
+                          GET_C3(c)] +                                         \
+                    GET_C4(c)];
 
 #endif

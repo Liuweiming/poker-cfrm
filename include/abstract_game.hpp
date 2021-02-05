@@ -15,7 +15,7 @@
 using std::vector;
 
 class AbstractGame {
-protected:
+ protected:
   int nb_threads;
   uint64_t nb_infosets;
   const Game *game;
@@ -24,7 +24,7 @@ protected:
   CardAbstraction *card_abs;
   ActionAbstraction *action_abs;
 
-public:
+ public:
   std::vector<uint64_t> public_tree_cache;
   AbstractGame(const Game *game_definition, CardAbstraction *card_abs,
                ActionAbstraction *action_abs, int nb_threads = 1);
@@ -46,19 +46,19 @@ public:
     // get action at state
     if (curr_node->is_terminal()) {
       // we could have been pushed off tree.
-      //std::cout << "keine actions mehr in terminal state " << path << "" << std::endl;;
+      // std::cout << "keine actions mehr in terminal state " << path << ""
+      //           << std::endl;
       return NULL;
     }
     InformationSetNode *node = (InformationSetNode *)curr_node;
 
     int round = node->get_round();
-    if (current_round < round)
-      curr_action = 0;
+    if (current_round < round) curr_action = 0;
 
     int max_actions = state->numActions[round];
     if (curr_action >= max_actions) {
       assert(round == state->round);
-         //std::cout << "returning found path: " << path << "" << std::endl;;
+      // std::cout << "returning found path: " << path << "" << std::endl;
       return curr_node;
     }
 
@@ -83,7 +83,8 @@ public:
       }
 
       unsigned lower_bound, upper_bound;
-      int bound_res = mapper.get_bounds(sizes, action.size, lower_bound, upper_bound);
+      int bound_res =
+          mapper.get_bounds(sizes, action.size, lower_bound, upper_bound);
       int abstract_size = mapper.map_rand(sizes, action.size);
       unsigned unused_bound =
           abstract_size == lower_bound ? upper_bound : lower_bound;
@@ -91,18 +92,18 @@ public:
 
       // check if tree can be traversed in that node. if not, take the unused
       // bound even when its worse.
-      INode *res = lookup_state(state, player, child, round, curr_action + 1,
-                                path + ActionsStr[action.type] +
-                                    std::to_string(action.size));
+      INode *res = lookup_state(
+          state, player, child, round, curr_action + 1,
+          path + ActionsStr[action.type] + std::to_string(action.size));
 
-      if (res == NULL && bound_res == 0 ) {
+      if (res == NULL && bound_res == 0) {
         std::cout << "originally choosen raise idx: " << abstract_size
                   << " leads to a nonexisting node. trying other bound idx: "
-                  << unused_bound << "" << std::endl;;
+                  << unused_bound << "" << std::endl;
         child = node->get_children()[first_raise_idx + unused_bound];
-        return lookup_state(state, player, child, round, curr_action + 1,
-                            path + ActionsStr[action.type] +
-                                std::to_string(action.size));
+        return lookup_state(
+            state, player, child, round, curr_action + 1,
+            path + ActionsStr[action.type] + std::to_string(action.size));
       } else {
         return res;
       }
@@ -139,8 +140,7 @@ public:
 };
 
 class KuhnGame : public AbstractGame {
-
-public:
+ public:
   KuhnGame(const Game *game_definition, CardAbstraction *cabs,
            ActionAbstraction *aabs, int nb_threads = 1);
 
@@ -148,7 +148,7 @@ public:
 };
 
 class LeducGame : public AbstractGame {
-public:
+ public:
   LeducGame(const Game *game_definition, CardAbstraction *cabs,
             ActionAbstraction *aabs, int nb_threads = 1);
 
@@ -159,7 +159,7 @@ public:
 class HoldemGame : public AbstractGame {
   ecalc::Handranks *handranks;
 
-public:
+ public:
   HoldemGame(const Game *game_definition, CardAbstraction *cabs,
              ActionAbstraction *aabs, ecalc::Handranks *hr, int nb_threads = 1);
 

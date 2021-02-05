@@ -314,12 +314,23 @@ void HoldemGame::evaluate(hand_t &hand) {
   card_c p1 = hand.holes[0];
   card_c p2 = hand.holes[1];
   card_c board = hand.board;
+  int p1r, p2r;
+  if (board.size() == 3){
+    bitset bboard =
+        CREATE_FHP_BOARD(board[0], board[1], board[2]);
 
-  bitset bboard =
-      CREATE_BOARD(board[0], board[1], board[2], board[3], board[4]);
+    p1r = LOOKUP_FHP_HAND(handranks, CREATE_HAND(p1[0], p1[1]) | bboard);
+    p2r = LOOKUP_FHP_HAND(handranks, CREATE_HAND(p2[0], p2[1]) | bboard);
+  } else if (board.size() == 5) {
+    bitset bboard =
+        CREATE_BOARD(board[0], board[1], board[2], board[3], board[4]);
 
-  int p1r = LOOKUP_HAND(handranks, CREATE_HAND(p1[0], p1[1]) | bboard);
-  int p2r = LOOKUP_HAND(handranks, CREATE_HAND(p2[0], p2[1]) | bboard);
+    p1r = LOOKUP_HAND(handranks, CREATE_HAND(p1[0], p1[1]) | bboard);
+    p2r = LOOKUP_HAND(handranks, CREATE_HAND(p2[0], p2[1]) | bboard);
+  } else {
+    std::cerr << "wrong board size, " << board.size() << std::endl;
+    return;
+  }
 
   if (p1r > p2r) {
     hand.value[0] = 1;

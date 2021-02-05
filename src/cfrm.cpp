@@ -345,7 +345,13 @@ vector<double> CFRM::get_normalized_avg_strategy(uint64_t idx, int bucket) {
 vector<double> CFRM::get_normalized_avg_strategy(uint64_t idx, card_c hand,
                                                  card_c board, int round) {
   int bucket = game->card_abstraction()->map_hand_to_bucket(hand, board, round);
-  return get_normalized_avg_strategy(idx, bucket);
+  auto st = get_normalized_avg_strategy(idx, bucket);
+  // std::cout << "bucket: " << bucket << " strategy: [";
+  // for (auto s : st) {
+  //   std::cout << s << " ";
+  // }
+  // std::cout << "]" << std::endl;
+  return st;
 }
 
 std::vector<vector<double>> CFRM::br_public_chance(INode *curr_node,
