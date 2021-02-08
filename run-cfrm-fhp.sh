@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
+export OMP_NUM_THREADS=10
+
 ./cfrm --game-type holdem \
---runtime 360000 --checkpoint 7200  \
---dump-strategy /data/liuwm/cfrm/fhp.limit.2p.game.strategy \
+--runtime 360000 --checkpoint 60  \
+--print-best-response \
 --card-abstraction cluster \
 --card-abstraction-param ./result/is_cluster.card_abs \
---print-best-response \
---threads 180 --handranks ./handranks.dat \
+--threads 10 --handranks ./handranks.dat \
 --gamedef ./games/fhp.limit.2p.game

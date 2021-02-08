@@ -25,7 +25,6 @@ class AbstractGame {
   ActionAbstraction *action_abs;
 
  public:
-  std::vector<uint64_t> public_tree_cache;
   AbstractGame(const Game *game_definition, CardAbstraction *card_abs,
                ActionAbstraction *action_abs, int nb_threads = 1);
 

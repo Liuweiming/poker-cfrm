@@ -1,8 +1,24 @@
 #include "cfrm.hpp"
 #include <assert.h>
+#include <omp.h>
 #include <iostream>
 #include "definitions.hpp"
 #include "functions.hpp"
+
+namespace {
+card_c update_deck(card_c &deck, const card_c &board) {
+  for (unsigned c = 0; c < board.size(); ++c) {
+    for (unsigned di = 0; di != deck.size(); ++di) {
+      if (deck[di] == board[c]) {
+        deck[di] = deck.back();
+        deck.pop_back();
+        break;
+      }
+    }
+  }
+  return deck;
+}
+}  // namespace
 
 CFRM::CFRM(AbstractGame *game, char *strat_dump_file) : game(game) {
   std::ifstream file(strat_dump_file, std::ios::in | std::ios::binary);
@@ -364,12 +380,14 @@ std::vector<vector<double>> CFRM::br_public_chance(INode *curr_node,
       choose((def->numRanks * def->numSuits) - nb_dead, p->to_deal);
 
   vector<vector<double>> payoffs(op.size(), vector<double>(op[0].size(), 0));
-  card_c deck = bitset_to_deck(game->public_tree_cache[p->hand_idx], 52);
+  card_c deck = game->generate_deck(def->numRanks, def->numSuits);
+  deck = update_deck(deck, p->board);
   hand_list curr_holdings = deck_to_combinations(def->numHoleCards, deck);
-
+#pragma omp parallel for
   for (unsigned child = 0; child < p->children.size(); ++child) {
     InformationSetNode *n = (InformationSetNode *)p->children[child];
-    card_c deck = bitset_to_deck(game->public_tree_cache[n->hand_idx], 52);
+    card_c deck = game->generate_deck(def->numRanks, def->numSuits);
+    deck = update_deck(deck, n->board);
     hand_list new_holdings = deck_to_combinations(def->numHoleCards, deck);
 
     std::string newpath = path;
@@ -383,12 +401,11 @@ std::vector<vector<double>> CFRM::br_public_chance(INode *curr_node,
         newop[i][j] = op[i][idx_hand] / possible_deals;
       }
     }
-
-    vector<vector<double>> subpayoffs =
-        best_response(p->children[child], newop, newpath);
+    auto subpayoffs = best_response(p->children[child], newop, newpath);
     for (unsigned i = 0; i < subpayoffs.size(); ++i) {
       for (unsigned j = 0; j < subpayoffs[i].size(); ++j) {
         unsigned idx_hand = game->find_index(new_holdings[j], curr_holdings);
+#pragma omp critical
         payoffs[i][idx_hand] += subpayoffs[i][j];
       }
     }
@@ -430,9 +447,11 @@ std::vector<vector<double>> CFRM::br_terminal(INode *curr_node,
 
   if (curr_node->is_fold()) {
     FoldNode *node = (FoldNode *)curr_node;
+    const Game *def = game->get_gamedef();
     int fold_player = node->fold_player;
     vector<vector<vector<int>>> possible_matchups;
-    card_c deck = bitset_to_deck(game->public_tree_cache[node->hand_idx], 52);
+    card_c deck = game->generate_deck(def->numRanks, def->numSuits);
+    deck = update_deck(deck, node->board);
     auto ph = deck_to_combinations(game->get_gamedef()->numHoleCards, deck);
     auto board = node->board;
     int money_f = node->value;
@@ -481,10 +500,12 @@ std::vector<vector<double>> CFRM::br_terminal(INode *curr_node,
   }
 
   // showdown
+  const Game *def = game->get_gamedef();
   ShowdownNode *node = (ShowdownNode *)curr_node;
 
   vector<vector<vector<int>>> possible_matchups;
-  card_c deck = bitset_to_deck(game->public_tree_cache[node->hand_idx], 52);
+  card_c deck = game->generate_deck(def->numRanks, def->numSuits);
+  deck = update_deck(deck, node->board);
   auto ph = deck_to_combinations(game->get_gamedef()->numHoleCards, deck);
   unsigned payoff_idx = 0;
   int money = node->value;
@@ -537,12 +558,13 @@ std::vector<vector<double>> CFRM::br_infoset(INode *curr_node,
                                              vector<vector<double>> op,
                                              std::string path) {
   InformationSetNode *node = (InformationSetNode *)curr_node;
+  const Game *def = game->get_gamedef();
   uint64_t info_idx = node->get_idx();
   int nb_buckets = game->card_abstraction()->get_nb_buckets(game->get_gamedef(),
                                                             node->get_round());
 
-  card_c deck = bitset_to_deck(game->public_tree_cache[node->hand_idx],
-                               52);  // todo variable
+  card_c deck = game->generate_deck(def->numRanks, def->numSuits);
+  deck = update_deck(deck, node->board);
   hand_list combos =
       deck_to_combinations(game->get_gamedef()->numHoleCards, deck);
   vector<vector<double>> probabilities(combos.size());

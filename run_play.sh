@@ -5,5 +5,5 @@
 # --host $1 --port $2
 THIS_DIR=$( cd "$( dirname "$0" )" && pwd )
 cd $THIS_DIR && ./player --game-type=holdem  --card-abstraction cluster --card-abs-param ./result/is_cluster.card_abs \
---gamedef ./games/fhp.limit.2p.game  --init-strategy ./result/fhp.limit.2p.game.strategy.1 \
+--gamedef ./games/fhp.limit.2p.game  --init-strategy /data/liuwm/cfrm/fhp.limit.2p.game.strategy.11 \
 --host $1 --port $2

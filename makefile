@@ -1,5 +1,5 @@
-CC	 = gcc
-CXX	 = g++ -g
+CC	 = gcc  -fopenmp
+CXX	 = g++ -g  -fopenmp
 
 CFLAGS ?=-std=c11 -Wall -g -O3
 LDLIBS ?=-c

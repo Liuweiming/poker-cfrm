@@ -87,28 +87,6 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
     PrivateChanceNode *c = new PrivateChanceNode(game->numHoleCards, hands_idx,
                                                  board, game, state);
 
-    // generate possible holecombinations
-    std::vector<card_c> combinations =
-        generate_combinations(deck.size(), game->numHoleCards, {});
-    auto nb_combinations = combinations.size();
-
-    // generate possible holdings for each player from combinations
-    // below the indexes are calculated for combination indexes
-    hand_list new_hands(nb_combinations);
-    for (unsigned c = 0; c < nb_combinations; ++c) {
-      card_c combo(combinations[c].size());
-      for (unsigned s = 0; s < combinations[c].size(); ++s) {
-        combo[s] = deck[combinations[c][s]];
-      }
-      new_hands[c] = combo;
-    }
-
-    ++idx;
-    if (public_tree_cache.size() - 1 < idx)
-      public_tree_cache.resize(public_tree_cache.size() + 100);
-    public_tree_cache[idx] = deck_to_bitset(deck);
-    card_c dec = bitset_to_deck(public_tree_cache[idx], 52);
-
     c->child = init_public_tree(action, state, idx, board, deck, game, idx);
     return c;
   }
@@ -121,51 +99,24 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
     hand_list combinations = generate_combinations(
         deck.size(), game->numBoardCards[state.round], board);
     auto nb_combinations = combinations.size();
+    std::cout << "nb of board combinations " << nb_combinations << std::endl;
 
-    unsigned nb_active_threads = 0;
-    vector<std::thread> threadpool(nb_threads);
     vector<INode *> children(nb_combinations);
 
+// NOTE: only works for 2 round poker games.
+#pragma omp parallel for
     for (unsigned i = 0; i < nb_combinations; ++i) {
       card_c newboard(board);
       card_c newdeck(deck);
       for (unsigned c = 0; c < combinations[i].size(); ++c) {
         int card = deck[combinations[i][c]];
-        newdeck[combinations[i][c]] = newdeck[deck.size() - 1];
+        newdeck[combinations[i][c]] = newdeck[newdeck.size() - 1];
         newdeck.pop_back();
         newboard.push_back(card);
       }
 
-      // filter players hands based on board
-      card_c deck = bitset_to_deck(public_tree_cache[hands_idx], 52);
-      hand_list new_holes;
-      hand_list hands = deck_to_combinations(game->numHoleCards, deck);
-      for (unsigned j = 0; j < hands.size(); ++j) {
-        if (!do_intersect(newboard, hands[j])) new_holes.push_back(hands[j]);
-      }
-
-      ++idx;
-      if (public_tree_cache.size() - 1 < idx)
-        public_tree_cache.resize(public_tree_cache.size() + 100);
-      public_tree_cache[idx] = deck_to_bitset(newdeck);
-
-      if (state.round == 1) {
-        threadpool[nb_active_threads] =
-            std::thread([i, action, &state, idx, newboard, newdeck, &game,
-                         &children, this] {
-              uint64_t ix = idx;
-              children[i] = init_public_tree(action, state, ix, newboard,
-                                             newdeck, game, ix);
-            });
-        nb_active_threads++;
-        if (nb_active_threads >= nb_threads || i == (nb_combinations - 1)) {
-          for (unsigned t = 0; t < nb_active_threads; ++t) threadpool[t].join();
-          nb_active_threads = 0;
-        }
-      } else {
-        children[i] =
-            init_public_tree(action, state, idx, newboard, newdeck, game, idx);
-      }
+      children[i] =
+          init_public_tree(action, state, hands_idx, newboard, newdeck, game, idx);
     }
 
     c->children = children;
@@ -182,8 +133,6 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
     int fold_player = state.playerFolded[0] ? 0 : 1;
     int money_f = state.spent[fold_player];
 
-    // get all valid matchups
-    card_c deck = bitset_to_deck(public_tree_cache[hands_idx], 52);
     auto ph = deck_to_combinations(game->numHoleCards, deck);
 
     if (!(state.playerFolded[0] || state.playerFolded[1])) {
@@ -249,14 +198,11 @@ INode *AbstractGame::game_tree_root() { return game_tree; }
 INode *AbstractGame::public_tree_root() {
   if (!public_tree) {
     uint64_t idi = 0;
-    public_tree_cache =
-        std::vector<uint64_t>(100);  // better estimate initial value
     card_c deck = generate_deck(game->numRanks, game->numSuits);
     State initial_state;
     initState(game, 0, &initial_state);
     public_tree = init_public_tree({a_invalid, 0}, initial_state, idi, {}, deck,
                                    game, idi, true);
-    std::cout << idi << "" << std::endl;
   }
   return public_tree;
 }
@@ -315,9 +261,8 @@ void HoldemGame::evaluate(hand_t &hand) {
   card_c p2 = hand.holes[1];
   card_c board = hand.board;
   int p1r, p2r;
-  if (board.size() == 3){
-    bitset bboard =
-        CREATE_FHP_BOARD(board[0], board[1], board[2]);
+  if (board.size() == 3) {
+    bitset bboard = CREATE_FHP_BOARD(board[0], board[1], board[2]);
 
     p1r = LOOKUP_FHP_HAND(handranks, CREATE_HAND(p1[0], p1[1]) | bboard);
     p2r = LOOKUP_FHP_HAND(handranks, CREATE_HAND(p2[0], p2[1]) | bboard);
