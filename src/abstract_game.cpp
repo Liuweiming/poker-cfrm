@@ -77,6 +77,19 @@ unsigned AbstractGame::find_index(card_c v1, vector<card_c> v2) {
   throw std::runtime_error("could not find v1 in v2");
 }
 
+
+bool AbstractGame::check_eq(card_c v1, card_c v2) {
+  if (v1.size() != v2.size()){
+    return false;
+  }
+  for (size_t i = 0; i != v1.size(); ++i){
+    if (v1[i] != v2[i]){
+      return false;
+    }
+  }
+  return true;
+}
+
 INode *AbstractGame::init_public_tree(Action action, State &state,
                                       uint64_t hands_idx, card_c board,
                                       card_c deck, const Game *game,
@@ -120,10 +133,10 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
     }
 
     c->children = children;
-    char state_str[100];
-    printState(game, &state, 100, state_str);
-    std::cout << state_str << std::endl;
-    std::cout << c << std::endl;
+    // char state_str[100];
+    // printState(game, &state, 100, state_str);
+    // std::cout << state_str << std::endl;
+    // std::cout << c << std::endl;
     return c;
   }
 

@@ -16,6 +16,7 @@ card_c update_deck(card_c &deck, const card_c &board) {
       }
     }
   }
+  std::sort(deck.begin(), deck.end());
   return deck;
 }
 }  // namespace
@@ -371,6 +372,8 @@ vector<double> CFRM::get_normalized_avg_strategy(uint64_t idx, card_c hand,
 }
 
 std::vector<vector<double>> CFRM::br_public_chance(INode *curr_node,
+                                                   const card_c &deck,
+                                                   const hand_list &hands,
                                                    vector<vector<double>> op,
                                                    std::string path) {
   const Game *def = game->get_gamedef();
@@ -380,31 +383,44 @@ std::vector<vector<double>> CFRM::br_public_chance(INode *curr_node,
       choose((def->numRanks * def->numSuits) - nb_dead, p->to_deal);
 
   vector<vector<double>> payoffs(op.size(), vector<double>(op[0].size(), 0));
-  card_c deck = game->generate_deck(def->numRanks, def->numSuits);
-  deck = update_deck(deck, p->board);
-  hand_list curr_holdings = deck_to_combinations(def->numHoleCards, deck);
 #pragma omp parallel for
   for (unsigned child = 0; child < p->children.size(); ++child) {
     InformationSetNode *n = (InformationSetNode *)p->children[child];
-    card_c deck = game->generate_deck(def->numRanks, def->numSuits);
-    deck = update_deck(deck, n->board);
-    hand_list new_holdings = deck_to_combinations(def->numHoleCards, deck);
+    card_c new_deck = game->generate_deck(def->numRanks, def->numSuits);
+    new_deck = update_deck(new_deck, n->board);
+    hand_list new_holdings = deck_to_combinations(def->numHoleCards, new_deck);
 
     std::string newpath = path;
     newpath = path + ActionsStr[n->get_action().type] + "/";
 
     vector<vector<double>> newop(op.size());
+    unsigned idx_hand = 0;
     for (unsigned i = 0; i < op.size(); ++i) {
       newop[i] = vector<double>(new_holdings.size());
+      idx_hand = 0;
       for (unsigned j = 0; j < newop[i].size(); ++j) {
-        unsigned idx_hand = game->find_index(new_holdings[j], curr_holdings);
+        while (!game->check_eq(new_holdings[j], hands[idx_hand])) {
+          // std::cout << (int)new_holdings[j][0] << " " << (int)new_holdings[j][1] << std::endl;
+          // std::cout << (int)hands[idx_hand][0] << " " << (int)hands[idx_hand][1] << std::endl;
+          ++idx_hand;
+          if (idx_hand >= hands.size()){
+            std::cerr << "can not find parent hand index in public node" << std::endl;
+            exit(-1);
+          }}
         newop[i][j] = op[i][idx_hand] / possible_deals;
       }
     }
-    auto subpayoffs = best_response(p->children[child], newop, newpath);
+    auto subpayoffs = best_response(p->children[child], new_deck, new_holdings,
+                                    newop, newpath);
     for (unsigned i = 0; i < subpayoffs.size(); ++i) {
+      idx_hand = 0;
       for (unsigned j = 0; j < subpayoffs[i].size(); ++j) {
-        unsigned idx_hand = game->find_index(new_holdings[j], curr_holdings);
+        while (!game->check_eq(new_holdings[j], hands[idx_hand])) {
+          ++idx_hand;
+          if (idx_hand >= hands.size()){
+            std::cerr << "can not find parent hand index in public node" << std::endl;
+            exit(-1);
+          }}
 #pragma omp critical
         payoffs[i][idx_hand] += subpayoffs[i][j];
       }
@@ -414,19 +430,21 @@ std::vector<vector<double>> CFRM::br_public_chance(INode *curr_node,
 }
 
 std::vector<vector<double>> CFRM::br_private_chance(INode *curr_node,
+                                                    const card_c &deck,
+                                                    const hand_list &hands,
                                                     vector<vector<double>> op,
                                                     std::string path) {
   const Game *def = game->get_gamedef();
   PrivateChanceNode *p = (PrivateChanceNode *)curr_node;
-
+  game->generate_deck(def->numRanks, def->numSuits);
   unsigned possible_deals = choose(def->numRanks * def->numSuits, p->to_deal);
-
   vector<vector<double>> newop(op.size());
   for (unsigned i = 0; i < op.size(); ++i) {
     newop[i] = vector<double>(possible_deals, op[i][0] / possible_deals);
   }
 
-  vector<vector<double>> subpayoffs = best_response(p->child, newop, path);
+  vector<vector<double>> subpayoffs =
+      best_response(p->child, deck, hands, newop, path);
   vector<vector<double>> payoffs(op.size(), vector<double>(op[0].size(), 0));
   for (unsigned i = 0; i < subpayoffs.size(); ++i) {
     for (unsigned j = 0; j < possible_deals; ++j) {
@@ -438,6 +456,8 @@ std::vector<vector<double>> CFRM::br_private_chance(INode *curr_node,
 }
 
 std::vector<vector<double>> CFRM::br_terminal(INode *curr_node,
+                                              const card_c &deck,
+                                              const hand_list &hands,
                                               vector<vector<double>> op,
                                               std::string path) {
   unsigned player = 0;
@@ -447,100 +467,39 @@ std::vector<vector<double>> CFRM::br_terminal(INode *curr_node,
 
   if (curr_node->is_fold()) {
     FoldNode *node = (FoldNode *)curr_node;
-    const Game *def = game->get_gamedef();
     int fold_player = node->fold_player;
-    vector<vector<vector<int>>> possible_matchups;
-    card_c deck = game->generate_deck(def->numRanks, def->numSuits);
-    deck = update_deck(deck, node->board);
-    auto ph = deck_to_combinations(game->get_gamedef()->numHoleCards, deck);
-    auto board = node->board;
     int money_f = node->value;
 
-    unsigned payoff_idx = 0;
-    for (unsigned i = 0; i < ph.size(); ++i) {
-      for (unsigned j = 0; j < ph.size(); ++j) {
-        if (i == j || game->do_intersect(ph[i], ph[j])) continue;
-
+    for (unsigned i = 0; i < hands.size(); ++i) {
+      for (unsigned j = 0; j < hands.size(); ++j) {
+        if (i == j || game->do_intersect(hands[i], hands[j])) continue;
         double payoff[2] = {(fold_player == 0 ? -1.0 : 1.0) * money_f,
                             (fold_player == 1 ? -1.0 : 1.0) * money_f};
+        payoffs[0][i] += op[1][j] * payoff[0];
+        counts[0][i]++;
 
-        unsigned idx_player_hand, idx_opp_hand;
-        double player_prob = 1.0;
-        double opp_prob = 1.0;
-
-        hand_list combo{ph[i], ph[j]};
-        for (unsigned h = 0; h < combo.size(); ++h) {
-          unsigned idx_hand = game->find_index(combo[h], ph);
-          if (h == player) {
-            idx_player_hand = idx_hand;
-            player_prob *= op[h][idx_hand];
-          } else {
-            idx_opp_hand = idx_hand;
-            opp_prob *= op[h][idx_hand];
-          }
-        }
-
-        payoffs[player][idx_player_hand] += opp_prob * payoff[player];
-        payoffs[opponent][idx_opp_hand] += player_prob * payoff[opponent];
-        counts[player][idx_player_hand]++;
-        counts[opponent][idx_opp_hand]++;
-
-        payoff_idx++;
+        payoffs[1][j] += op[0][i] * payoff[1];
+        counts[1][j]++;
       }
     }
-    for (unsigned c = 0; c < counts.size(); ++c) {
-      for (unsigned d = 0; d < counts[c].size(); ++d) {
-        if (counts[c][d] > 0) {
-          payoffs[c][d] /= (counts[c][d] * 1.0);
-        }
+  } else {
+    // showdown
+    ShowdownNode *node = (ShowdownNode *)curr_node;
+    int money = node->value;
+
+    for (unsigned i = 0; i < hands.size(); ++i) {
+      for (unsigned j = 0; j < hands.size(); ++j) {
+        if (i == j || game->do_intersect(hands[i], hands[j])) continue;
+        hand_t hand({hands[i], hands[j]}, node->board);
+        game->evaluate(hand);
+        double payoff[2] = {(double)hand.value[0] * money,
+                            (double)hand.value[1] * money};
+        payoffs[0][i] += op[1][j] * payoff[0];
+        counts[0][i]++;
+
+        payoffs[1][j] += op[0][i] * payoff[1];
+        counts[1][j]++;
       }
-    }
-
-    return payoffs;
-  }
-
-  // showdown
-  const Game *def = game->get_gamedef();
-  ShowdownNode *node = (ShowdownNode *)curr_node;
-
-  vector<vector<vector<int>>> possible_matchups;
-  card_c deck = game->generate_deck(def->numRanks, def->numSuits);
-  deck = update_deck(deck, node->board);
-  auto ph = deck_to_combinations(game->get_gamedef()->numHoleCards, deck);
-  unsigned payoff_idx = 0;
-  int money = node->value;
-
-  for (unsigned i = 0; i < ph.size(); ++i) {
-    for (unsigned j = 0; j < ph.size(); ++j) {
-      if (i == j || game->do_intersect(ph[i], ph[j])) continue;
-
-      hand_t hand({ph[i], ph[j]}, node->board);
-      game->evaluate(hand);
-      double payoff[2] = {(double)hand.value[0] * money,
-                          (double)hand.value[1] * money};
-
-      unsigned idx_player_hand, idx_opp_hand;
-      double player_prob = 1.0;
-      double opp_prob = 1.0;
-
-      hand_list combo{ph[i], ph[j]};
-      for (unsigned h = 0; h < combo.size(); ++h) {
-        unsigned idx_hand = game->find_index(combo[h], ph);
-        if (h == player) {
-          idx_player_hand = idx_hand;
-          player_prob *= op[h][idx_hand];
-        } else {
-          idx_opp_hand = idx_hand;
-          opp_prob *= op[h][idx_hand];
-        }
-      }
-
-      payoffs[player][idx_player_hand] += opp_prob * payoff[player];
-      payoffs[opponent][idx_opp_hand] += player_prob * payoff[opponent];
-      counts[player][idx_player_hand]++;
-      counts[opponent][idx_opp_hand]++;
-
-      payoff_idx++;
     }
   }
   for (unsigned c = 0; c < counts.size(); ++c) {
@@ -555,6 +514,8 @@ std::vector<vector<double>> CFRM::br_terminal(INode *curr_node,
 }
 
 std::vector<vector<double>> CFRM::br_infoset(INode *curr_node,
+                                             const card_c &deck,
+                                             const hand_list &hands,
                                              vector<vector<double>> op,
                                              std::string path) {
   InformationSetNode *node = (InformationSetNode *)curr_node;
@@ -563,14 +524,10 @@ std::vector<vector<double>> CFRM::br_infoset(INode *curr_node,
   int nb_buckets = game->card_abstraction()->get_nb_buckets(game->get_gamedef(),
                                                             node->get_round());
 
-  card_c deck = game->generate_deck(def->numRanks, def->numSuits);
-  deck = update_deck(deck, node->board);
-  hand_list combos =
-      deck_to_combinations(game->get_gamedef()->numHoleCards, deck);
-  vector<vector<double>> probabilities(combos.size());
+  vector<vector<double>> probabilities(hands.size());
 
   for (unsigned i = 0; i < op[0].size(); ++i) {
-    auto hand = combos[i];
+    auto hand = hands[i];
     probabilities[i] = get_normalized_avg_strategy(info_idx, hand, node->board,
                                                    node->get_round());
   }
@@ -584,7 +541,8 @@ std::vector<vector<double>> CFRM::br_infoset(INode *curr_node,
     std::string newpath = path;
     if (!node->get_children()[i]->is_chance())
       newpath = path + ActionsStr[node->get_children()[i]->get_action().type];
-    action_payoffs[i] = best_response(node->get_children()[i], newop, newpath);
+    action_payoffs[i] =
+        best_response(node->get_children()[i], deck, hands, newop, newpath);
   }
 
   vector<vector<double>> payoffs(op.size());
@@ -616,21 +574,26 @@ std::vector<vector<double>> CFRM::br_infoset(INode *curr_node,
 }
 
 std::vector<vector<double>> CFRM::best_response(INode *curr_node,
+                                                const card_c &deck,
+                                                const hand_list &hands,
                                                 vector<vector<double>> op,
                                                 std::string path) {
   if (curr_node->is_public_chance()) {
-    return br_public_chance(curr_node, op, path);
+    return br_public_chance(curr_node, deck, hands, op, path);
   } else if (curr_node->is_private_chance()) {
-    return br_private_chance(curr_node, op, path);
+    return br_private_chance(curr_node, deck, hands, op, path);
   } else if (curr_node->is_terminal()) {
-    return br_terminal(curr_node, op, path);
+    return br_terminal(curr_node, deck, hands, op, path);
   }
-  return br_infoset(curr_node, op, path);
+  return br_infoset(curr_node, deck, hands, op, path);
 }
 
 std::vector<double> CFRM::best_response() {
+  const Game *def = game->get_gamedef();
+  card_c deck = game->generate_deck(def->numRanks, def->numSuits);
+  hand_list hands = deck_to_combinations(def->numHoleCards, deck);
   auto result =
-      best_response(game->public_tree_root(),
+      best_response(game->public_tree_root(), deck, hands,
                     vector<vector<double>>(game->get_gamedef()->numPlayers,
                                            vector<double>(1, 1.0)),
                     "");

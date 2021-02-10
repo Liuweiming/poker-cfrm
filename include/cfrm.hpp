@@ -1,28 +1,29 @@
 #ifndef CFRM_HPP
 #define CFRM_HPP
 
-#include <random>
-#include <bitset>
-#include <string>
 #include <algorithm>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <poker/card.hpp>
-#include <ecalc/types.hpp>
+#include <bitset>
 #include <ecalc/macros.hpp>
+#include <ecalc/types.hpp>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <poker/card.hpp>
+#include <random>
+#include <string>
 #include "abstract_game.hpp"
 
 using std::vector;
 
 class CFRM {
-public:
+ public:
   AbstractGame *game;
   entry_c regrets;
   entry_c avg_strategy;
 
   CFRM(AbstractGame *game)
-      : game(game), regrets(game->get_nb_infosets()),
+      : game(game),
+        regrets(game->get_nb_infosets()),
         avg_strategy(game->get_nb_infosets()) {
     game->game_tree_root()->init_entries(
         regrets, avg_strategy, game->get_gamedef(), game->card_abstraction());
@@ -38,8 +39,7 @@ public:
 
   void print_strategy(unsigned player);
 
-  void print_strategy_r(unsigned player, INode *curr_node,
-                        std::string );
+  void print_strategy_r(unsigned player, INode *curr_node, std::string);
 
   std::vector<double> get_strategy(uint64_t info_idx, int bucket);
 
@@ -52,34 +52,44 @@ public:
 
   // calculate best response of the abstract game
   std::vector<double> abstract_best_response();
-  vector<vector<double>> abstract_br(INode *curr_node, vector<vector<double>> op,
+  vector<vector<double>> abstract_br(INode *curr_node,
+                                     vector<vector<double>> op,
                                      std::string path);
-  vector<vector<double>>
-  abstract_br_infoset(INode *curr_node, vector<vector<double>> op, std::string path);
+  vector<vector<double>> abstract_br_infoset(INode *curr_node,
+                                             vector<vector<double>> op,
+                                             std::string path);
 
   vector<vector<double>> abstract_br_terminal(INode *curr_node,
                                               vector<vector<double>> op,
                                               std::string path);
 
   std::vector<vector<double>> br_public_chance(INode *curr_node,
+                                               const card_c &deck,
+                                               const hand_list &hands,
                                                vector<vector<double>> op,
-                                               std::string path );
+                                               std::string path);
 
   std::vector<vector<double>> br_private_chance(INode *curr_node,
+                                                const card_c &deck,
+                                                const hand_list &hands,
                                                 vector<vector<double>> op,
-                                                std::string path );
+                                                std::string path);
 
-  std::vector<vector<double>> br_terminal(INode *curr_node,
+  std::vector<vector<double>> br_terminal(INode *curr_node, const card_c &deck,
+                                          const hand_list &hands,
                                           vector<vector<double>> op,
                                           std::string path);
 
-  std::vector<vector<double>> br_infoset(INode *curr_node,
+  std::vector<vector<double>> br_infoset(INode *curr_node, const card_c &deck,
+                                         const hand_list &hands,
                                          vector<vector<double>> op,
                                          std::string path);
 
   std::vector<vector<double>> best_response(INode *curr_node,
+                                            const card_c &deck,
+                                            const hand_list &hands,
                                             vector<vector<double>> op,
-                                            std::string path );
+                                            std::string path);
 
   std::vector<double> best_response();
 
@@ -170,7 +180,7 @@ public:
 };
 
 class ExternalSamplingCFR : public CFRM {
-public:
+ public:
   ExternalSamplingCFR(AbstractGame *game) : CFRM(game) {}
   ExternalSamplingCFR(AbstractGame *game, char *strat_dump_file)
       : CFRM(game, strat_dump_file) {}
@@ -182,7 +192,7 @@ public:
 };
 
 class ChanceSamplingCFR : public CFRM {
-public:
+ public:
   ChanceSamplingCFR(AbstractGame *game) : CFRM(game) {}
   ChanceSamplingCFR(AbstractGame *game, char *strat_dump_file)
       : CFRM(game, strat_dump_file) {}
@@ -194,7 +204,7 @@ public:
 };
 
 class OutcomeSamplingCFR : public CFRM {
-public:
+ public:
   OutcomeSamplingCFR(AbstractGame *game) : CFRM(game) {}
   OutcomeSamplingCFR(AbstractGame *game, char *strat_dump_file)
       : CFRM(game, strat_dump_file) {}

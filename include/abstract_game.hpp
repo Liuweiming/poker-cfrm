@@ -125,6 +125,7 @@ class AbstractGame {
   // checks if to integer collections overlap
   bool do_intersect(card_c v1, card_c v2);
   unsigned find_index(card_c v1, vector<card_c> v2);
+  bool check_eq(card_c v1, card_c v2);
   INode *init_game_tree(Action action, State &state, const Game *game,
                         uint64_t &idx);
   INode *init_public_tree(Action action, State &state, uint64_t hand,
