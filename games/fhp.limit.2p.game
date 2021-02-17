@@ -7,7 +7,7 @@ raiseSize = 100 100
 firstPlayer = 1 2 
 maxRaises = 3 3
 numSuits = 2
-numRanks = 13
+numRanks = 5
 numHoleCards = 2
 numBoardCards = 0 3
 END GAMEDEF

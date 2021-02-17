@@ -145,6 +145,14 @@ class ClusterCardAbstraction : public CardAbstraction {
     for (unsigned i = 2; i < board.size() + 2; ++i) cards[i] = board[i - 2];
 
     hand_index_t index = hand_index_last(&indexer[round], cards);
+    // uint8_t unicards[7];
+    // hand_unindex(&indexer[round], round == 0 ? 0 : 1, index, unicards);
+    // char card_str[100];
+    // printCards(hand.size() + board.size(), &(cards[0]), 100, card_str);
+    // std::cout << card_str << ":";
+    // printCards(hand.size() + board.size(), &(unicards[0]), 100, card_str);
+    // std::cout << card_str << " " << std::endl;
+    // std::cout << "round " << round << " index " << index << " bucket " << buckets[round][index] << std::endl;
     return buckets[round][index];
   }
 };

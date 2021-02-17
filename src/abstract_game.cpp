@@ -47,8 +47,11 @@ INode *AbstractGame::init_game_tree(Action action, State &state,
   }
 
   uint64_t info_idx = idx++;
-  auto ret = new InformationSetNode(
-      info_idx, action, currentPlayer(game, &state), state.round, children);
+  char buff[100];
+  printState(game, &state, 100, buff);
+  auto ret = new InformationSetNode(std::string(buff), info_idx, action,
+                                    currentPlayer(game, &state), state.round,
+                                    children);
   // char state_str[100];
   // printState(game, &state, 100, state_str);
   // std::cout << state_str << std::endl;
@@ -77,30 +80,31 @@ unsigned AbstractGame::find_index(card_c v1, vector<card_c> v2) {
   throw std::runtime_error("could not find v1 in v2");
 }
 
-
 bool AbstractGame::check_eq(card_c v1, card_c v2) {
-  if (v1.size() != v2.size()){
+  if (v1.size() != v2.size()) {
     return false;
   }
-  for (size_t i = 0; i != v1.size(); ++i){
-    if (v1[i] != v2[i]){
+  for (size_t i = 0; i != v1.size(); ++i) {
+    if (v1[i] != v2[i]) {
       return false;
     }
   }
   return true;
 }
 
-INode *AbstractGame::init_public_tree(Action action, State &state,
-                                      uint64_t hands_idx, card_c board,
-                                      card_c deck, const Game *game,
-                                      uint64_t &idx, bool deal_holes,
-                                      bool deal_board) {
+INode *AbstractGame::init_public_tree(Action action,
+                                      InformationSetNode *tree_node,
+                                      State &state, uint64_t hands_idx,
+                                      card_c board, card_c deck,
+                                      const Game *game, uint64_t &idx,
+                                      bool deal_holes, bool deal_board) {
   // root of tree, deal holes
   if (deal_holes) {
     PrivateChanceNode *c = new PrivateChanceNode(game->numHoleCards, hands_idx,
                                                  board, game, state);
 
-    c->child = init_public_tree(action, state, idx, board, deck, game, idx);
+    c->child =
+        init_public_tree(action, tree_node, state, idx, board, deck, game, idx);
     return c;
   }
 
@@ -128,8 +132,8 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
         newboard.push_back(card);
       }
 
-      children[i] =
-          init_public_tree(action, state, hands_idx, newboard, newdeck, game, idx);
+      children[i] = init_public_tree(action, tree_node, state, hands_idx,
+                                     newboard, newdeck, game, idx);
     }
 
     c->children = children;
@@ -158,21 +162,29 @@ INode *AbstractGame::init_public_tree(Action action, State &state,
   const State *s = &state;
   InformationSetNode *game_node = (InformationSetNode *)lookup_state(
       s, currentPlayer(game, s), game_tree_root(), 0, 0);
-  uint64_t info_idx = game_node->get_idx();
+  if (tree_node->get_idx() != game_node->get_idx()) {
+    std::cout << tree_node->get_idx() << " " << game_node->get_idx() << std::endl;
+    std::cout << tree_node->get_info_str() << " " << game_node->get_info_str()
+              << std::endl;
+    std::cerr << "error public tree node index" << std::endl;
+  }
   std::vector<Action> actions = action_abs->get_actions(game, state);
   std::vector<INode *> children(actions.size());
-  InformationSetNode *n =
-      new InformationSetNode(info_idx, action, currentPlayer(game, &state),
-                             state.round, {}, hands_idx, board);
+  char buff[100];
+  printState(game, &state, 100, buff);
+  InformationSetNode *n = new InformationSetNode(
+      std::string(buff), game_node->get_idx(), action,
+      currentPlayer(game, &state), state.round, {}, hands_idx, board);
   int curr_round = state.round;
 
   for (int c = 0; c < actions.size(); ++c) {
     State new_state(state);
     doAction(game, &actions[c], &new_state);
     int new_round = new_state.round;
-    children[c] =
-        init_public_tree(actions[c], new_state, hands_idx, board, deck, game,
-                         idx, false, curr_round < new_round);
+    children[c] = init_public_tree(
+        actions[c], (InformationSetNode *)(tree_node->get_children()[c]),
+        new_state, hands_idx, board, deck, game, idx, false,
+        curr_round < new_round);
   }
 
   n->children = children;
@@ -214,8 +226,9 @@ INode *AbstractGame::public_tree_root() {
     card_c deck = generate_deck(game->numRanks, game->numSuits);
     State initial_state;
     initState(game, 0, &initial_state);
-    public_tree = init_public_tree({a_invalid, 0}, initial_state, idi, {}, deck,
-                                   game, idi, true);
+    public_tree =
+        init_public_tree({a_invalid, 0}, (InformationSetNode *)game_tree_root(),
+                         initial_state, idi, {}, deck, game, idi, true);
   }
   return public_tree;
 }

@@ -128,7 +128,8 @@ class AbstractGame {
   bool check_eq(card_c v1, card_c v2);
   INode *init_game_tree(Action action, State &state, const Game *game,
                         uint64_t &idx);
-  INode *init_public_tree(Action action, State &state, uint64_t hand,
+  INode *init_public_tree(Action action, InformationSetNode *tree_node, 
+                          State &state, uint64_t hand,
                           card_c board, card_c deck, const Game *game,
                           uint64_t &idx, bool deal_holes = false,
                           bool deal_board = false);

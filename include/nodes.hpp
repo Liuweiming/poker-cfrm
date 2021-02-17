@@ -9,7 +9,7 @@
 using std::vector;
 
 class INode {
-public:
+ public:
   virtual void init_entries(entry_c &regrets, entry_c &avg_strategy,
                             const Game *game,
                             CardAbstraction *card_abstraction) {}
@@ -23,28 +23,43 @@ public:
 };
 
 class InformationSetNode : public INode {
+  std::string info_str;
   uint64_t idx;
   Action action;
   unsigned player;
   unsigned round;
 
-public:
+ public:
   std::vector<INode *> children;
   uint64_t hand_idx;
   card_c board;
 
-  InformationSetNode(uint64_t idx, Action action, unsigned player,
-                     unsigned round, std::vector<INode *> children)
-      : idx(idx), action(action), player(player), round(round),
+  InformationSetNode(const std::string &info, uint64_t idx, Action action,
+                     unsigned player, unsigned round,
+                     std::vector<INode *> children)
+      : info_str(info),
+        idx(idx),
+        action(action),
+        player(player),
+        round(round),
         children(children) {}
 
-  InformationSetNode(uint64_t idx, Action action, unsigned player,
-                     unsigned round, std::vector<INode *> children,
-                     uint64_t hand_idx, card_c board)
-      : idx(idx), action(action), player(player), round(round),
-        children(children), hand_idx(hand_idx), board(board) {}
+  InformationSetNode(const std::string &info, uint64_t idx, Action action,
+                     unsigned player, unsigned round,
+                     std::vector<INode *> children, uint64_t hand_idx,
+                     card_c board)
+      : info_str(info),
+        idx(idx),
+        action(action),
+        player(player),
+        round(round),
+        children(children),
+        hand_idx(hand_idx),
+        board(board) {}
 
   virtual Action get_action() { return action; }
+
+  virtual std::string get_info_str() {return info_str; }
 
   virtual void init_entries(entry_c &regrets, entry_c &avg_strategy,
                             const Game *game,
@@ -72,7 +87,7 @@ public:
 class ShowdownNode : public INode {
   Action action;
 
-public:
+ public:
   uint64_t hand_idx;
   double value;
   card_c board;
@@ -93,8 +108,7 @@ public:
 };
 
 class FoldNode : public INode {
-
-public:
+ public:
   Action action;
   card_c board;
   vector<vector<double>> payoffs;
@@ -107,8 +121,11 @@ public:
 
   FoldNode(Action action, unsigned fold_player, double value, uint64_t hand_idx,
            card_c board)
-      : action(action), fold_player(fold_player), value(value),
-        hand_idx(hand_idx), board(board) {}
+      : action(action),
+        fold_player(fold_player),
+        value(value),
+        hand_idx(hand_idx),
+        board(board) {}
 
   virtual unsigned get_player() { return fold_player; }
   virtual bool is_terminal() { return true; }
@@ -121,7 +138,7 @@ public:
 };
 
 class PublicChanceNode : public INode {
-public:
+ public:
   unsigned to_deal;
   int round;
   card_c board;
@@ -147,7 +164,7 @@ public:
 };
 
 class PrivateChanceNode : public INode {
-public:
+ public:
   unsigned to_deal;
   uint64_t hand_idx;
   INode *child;
