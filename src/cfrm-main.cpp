@@ -125,6 +125,7 @@ unsigned curr_check = 1;
     std::cerr << options.log_path << " is not a directory." << std::endl;
     return false;
   }
+  std::cout << "logging to " << options.log_path << std::endl;
   DataLoggerJsonLines data_logger(options.log_path, "debug", true);
 
   CFRM *cfr;

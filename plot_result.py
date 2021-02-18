@@ -38,7 +38,7 @@ data = {}
 pindex = 0
 
 exp_fig, exp_axs = plt.subplots(1, 1)
-exp_fig.set_size_inches(w=13, h=7)
+exp_fig.set_size_inches(w=7, h=4)
 exp_fig_name = ''
 # true_leduc_cfr_exp = np.loadtxt("true_leduc_cfr_exp.out")
 # true_leduc_cfr_exp = true_leduc_cfr_exp[1:101]
@@ -53,7 +53,11 @@ base_comm = ""
 
 
 for file, name in ([
-    ("18_02_2021.10_13_23", "FHP_2_5_escfr"),
+    # ("18_02_2021.11_16_45", "FHP_2_5_null_abs_escfr"),
+    # ("18_02_2021.11_16_30", "FHP_2_5_no_abs_escfr"),
+    ("18_02_2021.11_18_40", "FHP_2_13_null_abs_escfr"),
+    ("18_02_2021.11_19_08", "FHP_2_13_no_abs_escfr"),
+    ("18_02_2021.13_19_21", "FHP_2_13_neeo_abs_escfr"),
 ] + pre_files):
     exploit = []
     localbr = []
