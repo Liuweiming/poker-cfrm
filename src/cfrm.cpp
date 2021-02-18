@@ -2,6 +2,10 @@
 #include <assert.h>
 #include <omp.h>
 #include <iostream>
+#include <unordered_set>
+#include "absl/strings/str_join.h"
+#include "absl/strings/str_split.h"
+#include "data_logger.h"
 #include "definitions.hpp"
 #include "functions.hpp"
 
@@ -329,6 +333,18 @@ std::vector<double> CFRM::get_strategy(uint64_t info_idx, int bucket) {
   return strategy;
 }
 
+std::vector<double> CFRM::get_regret(uint64_t info_idx, int bucket) {
+  entry_t &reg = regrets[info_idx];
+  unsigned nb_children = reg.nb_entries;
+  std::vector<double> regret(nb_children);
+
+  for (unsigned i = 0; i < nb_children; ++i) {
+    regret[i] = reg[bucket * reg.nb_entries + i];
+  }
+
+  return regret;
+}
+
 int CFRM::sample_strategy(std::vector<double> strategy, nbgen &rng) {
   std::discrete_distribution<int> d(strategy.begin(), strategy.end());
   return d(rng);
@@ -400,13 +416,17 @@ std::vector<vector<double>> CFRM::br_public_chance(INode *curr_node,
       idx_hand = 0;
       for (unsigned j = 0; j < newop[i].size(); ++j) {
         while (!game->check_eq(new_holdings[j], hands[idx_hand])) {
-          // std::cout << (int)new_holdings[j][0] << " " << (int)new_holdings[j][1] << std::endl;
-          // std::cout << (int)hands[idx_hand][0] << " " << (int)hands[idx_hand][1] << std::endl;
+          // std::cout << (int)new_holdings[j][0] << " " <<
+          // (int)new_holdings[j][1] << std::endl; std::cout <<
+          // (int)hands[idx_hand][0] << " " << (int)hands[idx_hand][1] <<
+          // std::endl;
           ++idx_hand;
-          if (idx_hand >= hands.size()){
-            std::cerr << "can not find parent hand index in public node" << std::endl;
+          if (idx_hand >= hands.size()) {
+            std::cerr << "can not find parent hand index in public node"
+                      << std::endl;
             exit(-1);
-          }}
+          }
+        }
         newop[i][j] = op[i][idx_hand] / possible_deals;
       }
     }
@@ -417,10 +437,12 @@ std::vector<vector<double>> CFRM::br_public_chance(INode *curr_node,
       for (unsigned j = 0; j < subpayoffs[i].size(); ++j) {
         while (!game->check_eq(new_holdings[j], hands[idx_hand])) {
           ++idx_hand;
-          if (idx_hand >= hands.size()){
-            std::cerr << "can not find parent hand index in public node" << std::endl;
+          if (idx_hand >= hands.size()) {
+            std::cerr << "can not find parent hand index in public node"
+                      << std::endl;
             exit(-1);
-          }}
+          }
+        }
 #pragma omp critical
         payoffs[i][idx_hand] += subpayoffs[i][j];
       }
@@ -602,6 +624,115 @@ std::vector<double> CFRM::best_response() {
   return out;
 }
 
+DataLogger::Record CFRM::debug() {
+  std::unordered_set<std::string> infos = {
+      "STATE:0:crc/crr:KsAh|/ThJhJs",
+      "STATE:0:crrc/cr:QsKh|/TsJsAs",
+      "STATE:0:cr/:ThKs|/",
+      "STATE:0:rc/:ThAs|/TsJsQs",
+      "STATE:0:rrc/rr:TsAs|/ThJhKh",
+      "STATE:0:cc/r:ThKh|/JsQsAh",
+      "STATE:0:crrc/rr:JhJs|/ThKsAh",
+      "STATE:0:rrc/r:TsAh|/QhQsKs",
+      "STATE:0:crrr/:QhKh|/",
+      "STATE:0:rc/rrr:QsAh|/JsQhKs",
+      "STATE:0:cc/rr:KsAh|/ThKhAs",
+      "STATE:0:crr/:QhKh|/",
+      "STATE:0:rrrc/rrr:JhQh|/ThTsAs",
+      "STATE:0:rrr/:QsAh|/",
+      "STATE:0:rc/r:QhKs|/ThQsAs",
+      "STATE:0:crrrc/c:TsAh|/JhJsKs",
+      "STATE:0:crc/rrr:JhAh|/QsKhAs",
+      "STATE:0:rc/crr:JsKh|/QhAhAs",
+      "STATE:0:c/:QhAs|/",
+      "STATE:0:rrrc/r:TsJh|/QhQsAs",
+      "STATE:0:crrrc/crr:TsQs|/ThJsKh",
+      "STATE:0:cc/rrr:AhAs|/JhQhKh",
+      "STATE:0:crrrc/rr:QsAh|/JsQhAs",
+      "STATE:0:crrc/rrr:JhKh|/ThJsQs",
+      "STATE:0:rrrc/c:TsKs|/JhJsQh",
+      "STATE:0:rrrc/cr:ThKs|/TsQhAh",
+      "STATE:0:crrrc/:ThQs|/QhKhKs",
+      "STATE:0:rrc/crrr:TsQs|/ThJhAh",
+      "STATE:0:crrc/:AhAs|/TsJsKh",
+      "STATE:0:rrrc/:JsAh|/TsJhKs",
+      "STATE:0:rc/crrr:AhAs|/JhQhQs",
+      "STATE:0:cc/:AhAs|/QhKhKs",
+      "STATE:0::KsAh|",
+      "STATE:0:crc/r:TsKs|/JsKhAh",
+      "STATE:0:cc/c:QhQs|/TsJhJs",
+      "STATE:0:crrc/c:QhAs|/ThJhKs",
+      "STATE:0:crc/crrr:QhAs|/JsQsAh",
+      "STATE:0:r/:ThQs|/",
+      "STATE:0:rc/cr:ThKs|/JhQhKh",
+  };
+  MatchState state;
+  state.viewingPlayer = 0;
+  const Game *gamedef = game->get_gamedef();
+  DataLogger::Record info_record;
+  for (auto &info : infos) {
+    // std::cout << info << std::endl;
+    readState(info.c_str(), gamedef, &state.state);
+    InformationSetNode *curr_node =
+        (InformationSetNode *)lookup_state(&state.state, state.viewingPlayer);
+    // CHECK IF WE FOUND THE CORRECT NODE
+    if (curr_node != NULL) {
+      // std::cout << curr_node->get_info_str() << " " << info << std::endl;
+      // std::cout << "lookup was successful";
+      // get strategy at curr_node
+      card_c hand(gamedef->numHoleCards);
+      for (int i = 0; i < gamedef->numHoleCards; ++i) {
+        int r = rankOfCard(state.state.holeCards[state.viewingPlayer][i]);
+        int s = suitOfCard(state.state.holeCards[state.viewingPlayer][i]);
+        hand[i] = makeCard(-MAX_RANKS + gamedef->numRanks + r,
+                           -MAX_SUITS + gamedef->numSuits + s);
+      }
+
+      card_c board;
+      for (int c = 0; c < sumBoardCards(gamedef, state.state.round); ++c) {
+        int r = rankOfCard(state.state.boardCards[c]);
+        int s = suitOfCard(state.state.boardCards[c]);
+        board.push_back(makeCard(-MAX_RANKS + gamedef->numRanks + r,
+                                 -MAX_SUITS + gamedef->numSuits + s));
+      }
+      char card_str[100];
+      if (hand.size()) {
+        printCards(hand.size(), &(hand[0]), 100, card_str);
+        // std::cout << card_str << ":";
+      }
+      if (board.size()) {
+        printCards(board.size(), &(board[0]), 100, card_str);
+        // std::cout << card_str << std::endl;
+      }
+
+      int bucket = game->card_abstraction()->map_hand_to_bucket(
+          hand, board, state.state.round);
+      auto strategy = get_normalized_avg_strategy(curr_node->get_idx(), bucket);
+      auto regret = get_regret(curr_node->get_idx(), bucket);
+      // for (unsigned i = 0; i < regret.size(); ++i){
+      //   std::cout << regret[i] << " ";
+      // }
+      // std::cout << std::endl;
+      // for (unsigned i = 0; i < strategy.size(); ++i){
+      //   std::cout << strategy[i] << " ";
+      // }
+      // std::cout << std::endl;
+      std::vector<Action> actions = curr_node->get_actions();
+      std::vector<std::string> str_actions(actions.size());
+      for (int ai = 0; ai != actions.size(); ++ai) {
+        static const std::string action_strs[3] = {"f", "c", "r"};
+        str_actions[ai] = action_strs[actions[ai].type];
+      }
+      info_record.emplace(info, json::Object({
+                                    {"action", json::CastToArray(str_actions)},
+                                    {"regret_net", json::CastToArray(regret)},
+                                    {"policy_net", json::CastToArray(strategy)},
+                                }));
+    }
+  }
+  return info_record;
+}
+
 void CFRM::dump(char *filename) {
   std::ofstream fs(filename, std::ios::out | std::ios::binary);
   size_t nb_infosets = regrets.size();
@@ -652,10 +783,42 @@ double ExternalSamplingCFR::train(int trainplayer, hand_t hand,
     return hand.value[trainplayer] * ((ShowdownNode *)curr_node)->value;
   } else {
     InformationSetNode *node = (InformationSetNode *)curr_node;
+    auto info_str = node->get_info_str();
+    std::vector<std::string> info_strs = absl::StrSplit(info_str, ":");
     uint64_t info_idx = node->get_idx();
     int bucket = game->card_abstraction()->map_hand_to_bucket(
         hand.holes[node->get_player()], hand.board, node->get_round());
-
+#ifdef DEBUG
+    char hole_str[100];
+    char hole_str_1[100];
+    char board_str[100];
+    if (hand.holes[0].size()) {
+      printCards(hand.holes[0].size(), &(hand.holes[0][0]), 100, hole_str);
+    }
+    if (hand.holes[1].size()) {
+      printCards(hand.holes[1].size(), &(hand.holes[1][0]), 100, hole_str_1);
+    }
+    if (hand.board.size()) {
+      printCards(hand.board.size(), &(hand.board[0]), 100, board_str);
+    }
+    if ((info_strs[2] == "" || info_strs[2] == "c" || info_strs[2] == "cc/" ||
+         info_strs[2] == "cc/r") &&
+        std::string(hole_str) == "2c5c" && std::string(board_str) == "3d4d6c") {
+      std::cout << info_strs[2] << ":" << hole_str << "|" << hole_str_1 << "/"
+                << board_str << " value " << (int)hand.value[0] << " "
+                << (int)hand.value[1]
+                << (trainplayer == node->get_player() ? std::string(" reg ")
+                                                      : std::string(" st "))
+                << bucket << std::endl;
+      auto regret = get_regret(node->get_idx(), bucket);
+      std::cout << "reg " << regret << std::endl;
+      auto strategy = get_strategy(node->get_idx(), bucket);
+      std::cout << "st " << strategy << std::endl;
+      auto ave_strategy = get_normalized_avg_strategy(node->get_idx(), bucket);
+      std::cout << "ave " << ave_strategy << std::endl;
+      std::cout << std::endl;
+    }
+#endif
     if (node->get_player() == trainplayer) {
       auto strategy = get_strategy(node->get_idx(), bucket);
 

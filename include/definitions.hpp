@@ -83,4 +83,20 @@ struct hand_t {
   }
 };
 
+template <typename T, typename U>
+std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& v) {
+  out << "{" << v.first << ", " << v.second << "}";
+  return out;
+}
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const std::vector<T>& v) {
+  out << "[";
+  for (int i = 0; i != v.size(); ++i) {
+    out << v[i] << ((i == (v.size() - 1)) ? "" : " ");
+  }
+  out << "]";
+  return out;
+}
+
 #endif

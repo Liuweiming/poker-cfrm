@@ -1,6 +1,7 @@
 #include <locale>
 #include <chrono>
 #include <thread>
+#include <ctime>
 #include <iomanip>
 #include <fstream>
 #include <iostream>
@@ -14,6 +15,8 @@
 #include "cfrm.hpp"
 #include "main_functions.hpp"
 #include "functions.cpp"
+#include "data_logger.h"
+#include "file.h"
 
 using std::cout;
 using std::string;
@@ -28,6 +31,7 @@ struct {
   game_t type = leduc;
   string handranks_path = "/usr/local/freedom/data/handranks.dat";
   string game_definition = "../../games/leduc.limit.2p.game";
+  string log_path = "";
 
   card_abstraction card_abs = NULLCARD_ABS;
   action_abstraction action_abs = NULLACTION_ABS;
@@ -101,6 +105,28 @@ unsigned curr_check = 1;
     break;
   };
 
+  
+  if (options.log_path == "") {
+    time_t rawtime;
+    struct tm* timeinfo;
+    char buffer[80];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, sizeof(buffer), "%d_%m_%Y.%X", timeinfo);
+    std::string str(buffer);
+    std::string::size_type post;
+    while ((post = str.find(":")) != str.npos) str.replace(post, 1, "_");
+    options.log_path = "./results/" + str;
+  }
+  file::Mkdir(options.log_path);
+  if (!file::IsDirectory(options.log_path)) {
+    std::cerr << options.log_path << " is not a directory." << std::endl;
+    return false;
+  }
+  DataLoggerJsonLines data_logger(options.log_path, "debug", true);
+
   CFRM *cfr;
   if (options.init_strategy == "")
     cfr = new CFR_SAMPLER(game);
@@ -159,7 +185,17 @@ unsigned curr_check = 1;
     if (options.print_best_response) {
       vector<double> br = cfr->best_response();
       cout << "BR :" << br[0] << " + " << br[1] << " = " << br[0] + br[1]
-           << "" << std::endl;;
+           << "" << std::endl;
+      unsigned iter_cnt_sum = 0;
+      for (unsigned i = 0; i < iter_threads_cnt.size(); ++i)
+        iter_cnt_sum += iter_threads_cnt[i];
+      DataLogger::Record record = {
+        {"Step", iter_cnt_sum},
+        {"Exploitability", br[0] + br[1]},
+    };
+    DataLogger::Record info_record = cfr->debug();
+    record.insert({"info_set", info_record});
+    data_logger.Write(record);
     }
 
     if (options.print_abstract_best_response) {

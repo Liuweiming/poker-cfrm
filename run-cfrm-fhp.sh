@@ -3,7 +3,7 @@
 export OMP_NUM_THREADS=30
 
 ./cfrm --game-type holdem \
---runtime 360000 --checkpoint 10  \
+--runtime 360000 --checkpoint 100  \
 --print-best-response \
---threads 1 --handranks ./handranks.dat \
+--threads 30 --handranks ./handranks.dat \
 --gamedef ./games/fhp.limit.2p.game

@@ -12,6 +12,7 @@
 #include <random>
 #include <string>
 #include "abstract_game.hpp"
+#include "data_logger.h"
 
 using std::vector;
 
@@ -39,7 +40,11 @@ class CFRM {
 
   void print_strategy(unsigned player);
 
+  DataLogger::Record debug();
+
   void print_strategy_r(unsigned player, INode *curr_node, std::string);
+  
+  std::vector<double> get_regret(uint64_t info_idx, int bucket);
 
   std::vector<double> get_strategy(uint64_t info_idx, int bucket);
 

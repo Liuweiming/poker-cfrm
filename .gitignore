@@ -5,7 +5,6 @@
 *.o
 *.card_abs
 *.center
-*.txt
 *.dat
 *.d
 *.log
@@ -26,3 +25,9 @@ lib/libpoker/lib/*
 lib/libpoker/obj/*
 lib/libecalc/lib/*
 lib/libecalc/obj/*
+/lib/abseil-cpp
+/lib/absl
+/images
+/result
+/results
+/*.txt

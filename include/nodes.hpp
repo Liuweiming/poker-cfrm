@@ -59,6 +59,14 @@ class InformationSetNode : public INode {
 
   virtual Action get_action() { return action; }
 
+  virtual std::vector<Action> get_actions() {
+    std::vector<Action> as;
+    for (auto &c: children){
+      as.push_back(c->get_action());
+    }
+    return as;
+  }
+
   virtual std::string get_info_str() {return info_str; }
 
   virtual void init_entries(entry_c &regrets, entry_c &avg_strategy,

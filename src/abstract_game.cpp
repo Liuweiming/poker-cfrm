@@ -4,6 +4,7 @@
 #include <ecalc/types.hpp>
 #include "functions.hpp"
 #include "game.h"
+#include "evalHandTables"
 
 AbstractGame::AbstractGame(const Game *game_definition,
                            CardAbstraction *card_abs,
@@ -163,7 +164,8 @@ INode *AbstractGame::init_public_tree(Action action,
   InformationSetNode *game_node = (InformationSetNode *)lookup_state(
       s, currentPlayer(game, s), game_tree_root(), 0, 0);
   if (tree_node->get_idx() != game_node->get_idx()) {
-    std::cout << tree_node->get_idx() << " " << game_node->get_idx() << std::endl;
+    std::cout << tree_node->get_idx() << " " << game_node->get_idx()
+              << std::endl;
     std::cout << tree_node->get_info_str() << " " << game_node->get_info_str()
               << std::endl;
     std::cerr << "error public tree node index" << std::endl;
@@ -288,16 +290,24 @@ void HoldemGame::evaluate(hand_t &hand) {
   card_c board = hand.board;
   int p1r, p2r;
   if (board.size() == 3) {
-    bitset bboard = CREATE_FHP_BOARD(board[0], board[1], board[2]);
-
-    p1r = LOOKUP_FHP_HAND(handranks, CREATE_HAND(p1[0], p1[1]) | bboard);
-    p2r = LOOKUP_FHP_HAND(handranks, CREATE_HAND(p2[0], p2[1]) | bboard);
-  } else if (board.size() == 5) {
-    bitset bboard =
-        CREATE_BOARD(board[0], board[1], board[2], board[3], board[4]);
-
-    p1r = LOOKUP_HAND(handranks, CREATE_HAND(p1[0], p1[1]) | bboard);
-    p2r = LOOKUP_HAND(handranks, CREATE_HAND(p2[0], p2[1]) | bboard);
+    Cardset c1 = emptyCardset();
+    for (int i = 0; i < p1.size(); ++i) {
+      addCardToCardset(&c1, suitOfCard(p1[i]), rankOfCard(p1[i]));
+    }
+    for (int i = 0; i < board.size(); ++i) {
+      addCardToCardset(&c1, suitOfCard(board[i]),
+                       rankOfCard(board[i]));
+    }
+    Cardset c2 = emptyCardset();
+    for (int i = 0; i < p2.size(); ++i) {
+      addCardToCardset(&c2, suitOfCard(p2[i]), rankOfCard(p2[i]));
+    }
+    for (int i = 0; i < board.size(); ++i) {
+      addCardToCardset(&c2, suitOfCard(board[i]),
+                       rankOfCard(board[i]));
+    }
+    p1r = rankCardset(c1);
+    p2r = rankCardset(c2);
   } else {
     std::cerr << "wrong board size, " << board.size() << std::endl;
     return;

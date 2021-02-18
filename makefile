@@ -8,10 +8,49 @@ CXXFLAGS ?= -std=c++11 -MMD -MP
 
 INCLUDES +=-I ./include\
 		   -I lib/libpoker/include\
-		   -I lib/libecalc/include
+		   -I lib/libecalc/include \
+		   -I lib/absl/include
 
-CPP_LIBRARIES += -L lib/libpoker/lib/release -lpoker\
-				 -L lib/libecalc/lib/release -lecalc\
+CPP_LIBRARIES +=-L lib/libpoker/lib/release -lpoker\
+				-L lib/libecalc/lib/release -lecalc\
+				-L lib/absl/lib/\
+					-Wl,--start-group -labsl_bad_optional_access\
+					-labsl_bad_variant_access\
+					-labsl_base\
+					-labsl_city\
+					-labsl_civil_time\
+					-labsl_debugging_internal\
+					-labsl_demangle_internal\
+					-labsl_dynamic_annotations\
+					-labsl_examine_stack\
+					-labsl_failure_signal_handler\
+					-labsl_flags\
+					-labsl_flags_config\
+					-labsl_flags_handle\
+					-labsl_flags_internal\
+					-labsl_flags_marshalling\
+					-labsl_flags_parse\
+					-labsl_flags_registry\
+					-labsl_flags_usage\
+					-labsl_graphcycles_internal\
+					-labsl_hash\
+					-labsl_hashtablez_sampler\
+					-labsl_int128\
+					-labsl_leak_check\
+					-labsl_leak_check_disable\
+					-labsl_malloc_internal\
+					-labsl_raw_hash_set\
+					-labsl_scoped_set_env\
+					-labsl_spinlock_wait\
+					-labsl_stacktrace\
+					-labsl_str_format_internal\
+					-labsl_strings\
+					-labsl_strings_internal\
+					-labsl_symbolize\
+					-labsl_synchronization\
+					-labsl_throw_delegate\
+					-labsl_time\
+					-labsl_time_zone -Wl,--end-group\
 				-lpthread -lboost_program_options
 
 ifeq ($(target),debug)
