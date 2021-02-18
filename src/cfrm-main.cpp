@@ -187,7 +187,7 @@ unsigned curr_check = 1;
       vector<double> br = cfr->best_response();
       cout << "BR :" << br[0] << " + " << br[1] << " = " << br[0] + br[1]
            << "" << std::endl;
-      unsigned iter_cnt_sum = 0;
+      size_t iter_cnt_sum = 0;
       for (unsigned i = 0; i < iter_threads_cnt.size(); ++i)
         iter_cnt_sum += iter_threads_cnt[i];
       DataLogger::Record record = {
