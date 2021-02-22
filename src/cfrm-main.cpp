@@ -38,7 +38,7 @@ struct {
   string card_abs_param = "";
   string action_abs_param = "";
 
-  int nb_threads = 6;
+  int nb_threads = 1;
   size_t seed = time(NULL);
 
   double runtime = 50;
@@ -130,10 +130,10 @@ unsigned curr_check = 1;
 
   CFRM *cfr;
   if (options.init_strategy == "")
-    cfr = new CFR_SAMPLER(game);
+    cfr = new CFR_SAMPLER(game, options.nb_threads);
   else {
     std::cout << "Initializing tree with " << options.init_strategy << "" << std::endl;;
-    cfr = new CFR_SAMPLER(game, (char *)options.init_strategy.c_str());
+    cfr = new CFR_SAMPLER(game, (char *)options.init_strategy.c_str(), options.nb_threads);
   }
 
   //std::cout << "Game tree size: " << cfr->count_bytes(game->game_tree_root()) /

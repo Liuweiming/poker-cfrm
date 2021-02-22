@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <ecalc/ecalc.hpp>
 #include <ecalc/types.hpp>
+#include "evalHandTables"
 #include "functions.hpp"
 #include "game.h"
-#include "evalHandTables"
 
 AbstractGame::AbstractGame(const Game *game_definition,
                            CardAbstraction *card_abs,
@@ -242,6 +242,10 @@ KuhnGame::KuhnGame(const Game *game_definition, CardAbstraction *cabs,
                    ActionAbstraction *aabs, int nb_threads)
     : AbstractGame(game_definition, cabs, aabs, nb_threads) {}
 
+int KuhnGame::rank_hand(const card_c &hand, const card_c &board) {
+  return rankOfCard(hand[0]);
+}
+
 void KuhnGame::evaluate(hand_t &hand) {
   hand.value[0] =
       rankOfCard(hand.holes[0][0]) > rankOfCard(hand.holes[1][0]) ? 1 : -1;
@@ -269,6 +273,10 @@ void LeducGame::evaluate(hand_t &hand) {
   }
 }
 
+int LeducGame::rank_hand(const card_c &hand, const card_c &board) {
+  return rank_hand(hand[0], board[0]);
+}
+
 int LeducGame::rank_hand(int hand, int board) {
   int h = rankOfCard(hand);
   int b = rankOfCard(board);
@@ -282,36 +290,20 @@ HoldemGame::HoldemGame(const Game *game_definition, CardAbstraction *cabs,
                        int nb_threads)
     : AbstractGame(game_definition, cabs, aabs, nb_threads), handranks(hr) {}
 
-void HoldemGame::evaluate(hand_t &hand) {
-  using namespace ecalc;
-
-  card_c p1 = hand.holes[0];
-  card_c p2 = hand.holes[1];
-  card_c board = hand.board;
-  int p1r, p2r;
-  if (board.size() == 3) {
-    Cardset c1 = emptyCardset();
-    for (int i = 0; i < p1.size(); ++i) {
-      addCardToCardset(&c1, suitOfCard(p1[i]), rankOfCard(p1[i]));
-    }
-    for (int i = 0; i < board.size(); ++i) {
-      addCardToCardset(&c1, suitOfCard(board[i]),
-                       rankOfCard(board[i]));
-    }
-    Cardset c2 = emptyCardset();
-    for (int i = 0; i < p2.size(); ++i) {
-      addCardToCardset(&c2, suitOfCard(p2[i]), rankOfCard(p2[i]));
-    }
-    for (int i = 0; i < board.size(); ++i) {
-      addCardToCardset(&c2, suitOfCard(board[i]),
-                       rankOfCard(board[i]));
-    }
-    p1r = rankCardset(c1);
-    p2r = rankCardset(c2);
-  } else {
-    std::cerr << "wrong board size, " << board.size() << std::endl;
-    return;
+int HoldemGame::rank_hand(const card_c &hole, const card_c &board) {
+  Cardset c1 = emptyCardset();
+  for (int i = 0; i < hole.size(); ++i) {
+    addCardToCardset(&c1, suitOfCard(hole[i]), rankOfCard(hole[i]));
   }
+  for (int i = 0; i < board.size(); ++i) {
+    addCardToCardset(&c1, suitOfCard(board[i]), rankOfCard(board[i]));
+  }
+  return rankCardset(c1);
+}
+
+void HoldemGame::evaluate(hand_t &hand) {
+  int p1r = rank_hand(hand.holes[0], hand.board);
+  int p2r = rank_hand(hand.holes[1], hand.board);
 
   if (p1r > p2r) {
     hand.value[0] = 1;

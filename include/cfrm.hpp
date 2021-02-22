@@ -21,16 +21,34 @@ class CFRM {
   AbstractGame *game;
   entry_c regrets;
   entry_c avg_strategy;
+  int br_count;
+  int num_threads;
+  std::vector<double *> value_cache;
+  bool *valid_cache;
 
-  CFRM(AbstractGame *game)
+  CFRM(AbstractGame *game, int num_threads=1)
       : game(game),
+        num_threads(num_threads),
+        value_cache(num_threads, nullptr),
+        valid_cache(nullptr),
         regrets(game->get_nb_infosets()),
         avg_strategy(game->get_nb_infosets()) {
     game->game_tree_root()->init_entries(
         regrets, avg_strategy, game->get_gamedef(), game->card_abstraction());
   }
 
-  CFRM(AbstractGame *game, char *strat_dump_file);
+  CFRM(AbstractGame *game, char *strat_dump_file, int num_threads=1);
+
+  virtual ~CFRM() {
+    for (auto &p : value_cache) {
+      if (p != nullptr) {
+        delete[] p;
+      }
+    }
+    if (valid_cache != nullptr) {
+      delete[] valid_cache;
+    }
+  }
 
   INode *lookup_state(const State *state, int player);
 
@@ -43,7 +61,7 @@ class CFRM {
   DataLogger::Record debug();
 
   void print_strategy_r(unsigned player, INode *curr_node, std::string);
-  
+
   std::vector<double> get_regret(uint64_t info_idx, int bucket);
 
   std::vector<double> get_strategy(uint64_t info_idx, int bucket);
@@ -68,33 +86,29 @@ class CFRM {
                                               vector<vector<double>> op,
                                               std::string path);
 
-  std::vector<vector<double>> br_public_chance(INode *curr_node,
-                                               const card_c &deck,
-                                               const hand_list &hands,
-                                               vector<vector<double>> op,
-                                               std::string path);
+  std::vector<vector<double>> br_public_chance(
+      INode *curr_node, const card_c &deck, const hand_list &hands,
+      vector<vector<double>> op, const vector<bool> &valid, std::string path);
 
-  std::vector<vector<double>> br_private_chance(INode *curr_node,
-                                                const card_c &deck,
-                                                const hand_list &hands,
-                                                vector<vector<double>> op,
-                                                std::string path);
+  std::vector<vector<double>> br_private_chance(
+      INode *curr_node, const card_c &deck, const hand_list &hands,
+      vector<vector<double>> op, const vector<bool> &valid, std::string path);
 
   std::vector<vector<double>> br_terminal(INode *curr_node, const card_c &deck,
                                           const hand_list &hands,
                                           vector<vector<double>> op,
+                                          const vector<bool> &valid,
                                           std::string path);
 
   std::vector<vector<double>> br_infoset(INode *curr_node, const card_c &deck,
                                          const hand_list &hands,
                                          vector<vector<double>> op,
+                                         const vector<bool> &valid,
                                          std::string path);
 
-  std::vector<vector<double>> best_response(INode *curr_node,
-                                            const card_c &deck,
-                                            const hand_list &hands,
-                                            vector<vector<double>> op,
-                                            std::string path);
+  std::vector<vector<double>> best_response(
+      INode *curr_node, const card_c &deck, const hand_list &hands,
+      vector<vector<double>> op, const vector<bool> &valid, std::string path);
 
   std::vector<double> best_response();
 
@@ -180,15 +194,14 @@ class CFRM {
     return sum;
   }
 
-  virtual ~CFRM() {}
   virtual void iterate(nbgen &rng) = 0;
 };
 
 class ExternalSamplingCFR : public CFRM {
  public:
-  ExternalSamplingCFR(AbstractGame *game) : CFRM(game) {}
-  ExternalSamplingCFR(AbstractGame *game, char *strat_dump_file)
-      : CFRM(game, strat_dump_file) {}
+  ExternalSamplingCFR(AbstractGame *game, int num_threads=1) : CFRM(game, num_threads) {}
+  ExternalSamplingCFR(AbstractGame *game, char *strat_dump_file, int num_threads=1)
+      : CFRM(game, strat_dump_file, num_threads) {}
 
   virtual void iterate(nbgen &rng);
 
@@ -198,9 +211,9 @@ class ExternalSamplingCFR : public CFRM {
 
 class ChanceSamplingCFR : public CFRM {
  public:
-  ChanceSamplingCFR(AbstractGame *game) : CFRM(game) {}
-  ChanceSamplingCFR(AbstractGame *game, char *strat_dump_file)
-      : CFRM(game, strat_dump_file) {}
+  ChanceSamplingCFR(AbstractGame *game, int num_threads=1) : CFRM(game, num_threads) {}
+  ChanceSamplingCFR(AbstractGame *game, char *strat_dump_file, int num_threads=1)
+      : CFRM(game, strat_dump_file, num_threads) {}
 
   virtual void iterate(nbgen &rng);
 
@@ -210,9 +223,9 @@ class ChanceSamplingCFR : public CFRM {
 
 class OutcomeSamplingCFR : public CFRM {
  public:
-  OutcomeSamplingCFR(AbstractGame *game) : CFRM(game) {}
-  OutcomeSamplingCFR(AbstractGame *game, char *strat_dump_file)
-      : CFRM(game, strat_dump_file) {}
+  OutcomeSamplingCFR(AbstractGame *game, int num_threads=1) : CFRM(game, num_threads) {}
+  OutcomeSamplingCFR(AbstractGame *game, char *strat_dump_file, int num_threads=1)
+      : CFRM(game, strat_dump_file, num_threads) {}
 
   virtual void iterate(nbgen &rng);
 

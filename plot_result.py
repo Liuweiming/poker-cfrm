@@ -53,10 +53,13 @@ base_comm = ""
 
 
 for file, name in ([
+    # ("22_02_2021.10_12_48", "leduc_no_abs"),
     # ("18_02_2021.11_16_45", "FHP_2_5_null_abs_escfr"),
     # ("18_02_2021.11_16_30", "FHP_2_5_no_abs_escfr"),
+    ("22_02_2021.10_23_35", "FHP_2_13_neeo_abs_escfr"),
+    ("22_02_2021.10_23_31", "FHP_2_13_null_abs_escfr"),
     ("18_02_2021.11_18_40", "FHP_2_13_null_abs_escfr"),
-    ("18_02_2021.11_19_08", "FHP_2_13_no_abs_escfr"),
+    # ("18_02_2021.11_19_08", "FHP_2_13_no_abs_escfr"),
     ("18_02_2021.13_19_21", "FHP_2_13_neeo_abs_escfr"),
 ] + pre_files):
     exploit = []

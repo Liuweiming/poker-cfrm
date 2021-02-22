@@ -29,6 +29,7 @@ class AbstractGame {
                ActionAbstraction *action_abs, int nb_threads = 1);
 
   virtual ~AbstractGame();
+  virtual int rank_hand(const card_c &hand, const card_c &board) = 0;
   virtual void evaluate(hand_t &hand) = 0;
 
   uint64_t get_nb_infosets() { return nb_infosets; }
@@ -128,11 +129,10 @@ class AbstractGame {
   bool check_eq(card_c v1, card_c v2);
   INode *init_game_tree(Action action, State &state, const Game *game,
                         uint64_t &idx);
-  INode *init_public_tree(Action action, InformationSetNode *tree_node, 
-                          State &state, uint64_t hand,
-                          card_c board, card_c deck, const Game *game,
-                          uint64_t &idx, bool deal_holes = false,
-                          bool deal_board = false);
+  INode *init_public_tree(Action action, InformationSetNode *tree_node,
+                          State &state, uint64_t hand, card_c board,
+                          card_c deck, const Game *game, uint64_t &idx,
+                          bool deal_holes = false, bool deal_board = false);
 
   INode *game_tree_root();
   INode *public_tree_root();
@@ -144,7 +144,7 @@ class KuhnGame : public AbstractGame {
  public:
   KuhnGame(const Game *game_definition, CardAbstraction *cabs,
            ActionAbstraction *aabs, int nb_threads = 1);
-
+  virtual int rank_hand(const card_c &hand, const card_c &board);
   virtual void evaluate(hand_t &hand);
 };
 
@@ -153,6 +153,7 @@ class LeducGame : public AbstractGame {
   LeducGame(const Game *game_definition, CardAbstraction *cabs,
             ActionAbstraction *aabs, int nb_threads = 1);
 
+  virtual int rank_hand(const card_c &hand, const card_c &board);
   virtual void evaluate(hand_t &hand);
   int rank_hand(int hand, int board);
 };
@@ -164,6 +165,7 @@ class HoldemGame : public AbstractGame {
   HoldemGame(const Game *game_definition, CardAbstraction *cabs,
              ActionAbstraction *aabs, ecalc::Handranks *hr, int nb_threads = 1);
 
+  virtual int rank_hand(const card_c &hand, const card_c &board);
   virtual void evaluate(hand_t &hand);
 };
 
